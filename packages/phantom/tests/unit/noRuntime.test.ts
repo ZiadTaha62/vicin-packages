@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import { Phantom } from '../../dist';
 
 describe('Zero runtime effect of assertors', () => {
@@ -65,11 +66,7 @@ describe('Zero runtime effect of assertors', () => {
     const dropY = Phantom.assertors.dropTrait<Y>();
 
     const value = 'some value';
-    const chain = new Phantom.PhantomChain(value)
-      .with(asX)
-      .with(addY)
-      .with(dropY)
-      .end();
+    const chain = new Phantom.PhantomChain(value).with(asX).with(addY).with(dropY).end();
 
     expect(chain).toBe(value);
   });

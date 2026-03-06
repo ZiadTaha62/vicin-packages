@@ -22,10 +22,7 @@ describe('parsePath', () => {
     expect(parsePath(input, false)).toEqual(expectedOutput);
   });
 
-  it.each([
-    'test\\a.b',
-    'foo.bar.baz\\',
-  ])('parsePath(%p) is rejected', (input) => {
+  it.each(['test\\a.b', 'foo.bar.baz\\'])('parsePath(%p) is rejected', (input) => {
     expect(() => parsePath(input, false)).toThrowError();
   });
 });

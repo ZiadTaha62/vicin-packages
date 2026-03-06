@@ -1,18 +1,8 @@
-/* eslint-disable es5/no-for-of */
-/* eslint-disable es5/no-es6-methods */
-
 import * as fs from 'fs';
 
 import SuperJSON from './index.js';
-import { JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
-import {
-  isArray,
-  isMap,
-  isPlainObject,
-  isPrimitive,
-  isSet,
-  isTypedArray,
-} from './is.js';
+import type { JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
+import { isArray, isMap, isPlainObject, isPrimitive, isSet, isTypedArray } from './is.js';
 
 import { ObjectID } from 'mongodb';
 import { Decimal } from 'decimal.js';
@@ -138,7 +128,7 @@ describe('stringify & parse', () => {
           selected: ['options.0'],
         },
       },
-      customExpectations: output => {
+      customExpectations: (output) => {
         expect(output.selected).toBe(output.options[0]);
       },
     },
@@ -210,6 +200,7 @@ describe('stringify & parse', () => {
           e: ['Error'],
         },
       },
+      dontExpectEquality: true, // // New vitest version compare enumrable so the input = untrasformed fails
     },
 
     'works for Error causes': {
@@ -234,6 +225,7 @@ describe('stringify & parse', () => {
           ],
         },
       },
+      dontExpectEquality: true, // New vitest version compare enumrable so the input = untrasformed fails
     },
 
     'works for regex': {
@@ -348,25 +340,26 @@ describe('stringify & parse', () => {
       },
     },
 
-    'works for Maps with two keys that serialize to the same string but have a different reference': {
-      input: new Map([
-        [/a/g, 'foo'],
-        [/a/g, 'bar'],
-      ]),
-      output: [
-        ['/a/g', 'foo'],
-        ['/a/g', 'bar'],
-      ],
-      outputAnnotations: {
-        values: [
-          'map',
-          {
-            '0.0': ['regexp'],
-            '1.0': ['regexp'],
-          },
+    'works for Maps with two keys that serialize to the same string but have a different reference':
+      {
+        input: new Map([
+          [/a/g, 'foo'],
+          [/a/g, 'bar'],
+        ]),
+        output: [
+          ['/a/g', 'foo'],
+          ['/a/g', 'bar'],
         ],
+        outputAnnotations: {
+          values: [
+            'map',
+            {
+              '0.0': ['regexp'],
+              '1.0': ['regexp'],
+            },
+          ],
+        },
       },
-    },
 
     "works for Maps with a key that's referentially equal to another field": {
       input: () => {
@@ -412,7 +405,7 @@ describe('stringify & parse', () => {
           a: ['b'],
         },
       },
-      customExpectations: value => {
+      customExpectations: (value) => {
         expect(value.a).toBe(value.b);
       },
     },
@@ -457,7 +450,7 @@ describe('stringify & parse', () => {
           userOfTheMonth: ['users.0'],
         },
       },
-      customExpectations: value => {
+      customExpectations: (value) => {
         expect(value.users.values().next().value).toBe(value.userOfTheMonth);
       },
     },
@@ -525,8 +518,8 @@ describe('stringify & parse', () => {
         SuperJSON.registerCustom<ObjectID, string>(
           {
             isApplicable: (v): v is ObjectID => v instanceof ObjectID,
-            serialize: v => v.toHexString(),
-            deserialize: v => new ObjectID(v),
+            serialize: (v) => v.toHexString(),
+            deserialize: (v) => new ObjectID(v),
           },
           'objectid'
         );
@@ -550,8 +543,8 @@ describe('stringify & parse', () => {
         SuperJSON.registerCustom<Decimal, string>(
           {
             isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
-            serialize: v => v.toJSON(),
-            deserialize: v => new Decimal(v),
+            serialize: (v) => v.toJSON(),
+            deserialize: (v) => new Decimal(v),
           },
           'decimal.js'
         );
@@ -614,7 +607,10 @@ describe('stringify & parse', () => {
     'works with custom allowedProps': {
       input: () => {
         class User {
-          constructor(public username: string, public password: string) {}
+          constructor(
+            public username: string,
+            public password: string
+          ) {}
         }
         SuperJSON.registerClass(User, { allowProps: ['username'] });
         return new User('bongocat', 'supersecurepassword');
@@ -775,15 +771,15 @@ describe('stringify & parse', () => {
     }
 
     if (isPlainObject(object)) {
-      Object.values(object).forEach(o => deepFreeze(o, alreadySeenObjects));
+      Object.values(object).forEach((o) => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isSet(object)) {
-      object.forEach(o => deepFreeze(o, alreadySeenObjects));
+      object.forEach((o) => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isArray(object)) {
-      object.forEach(o => deepFreeze(o, alreadySeenObjects));
+      object.forEach((o) => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isMap(object)) {
@@ -811,11 +807,11 @@ describe('stringify & parse', () => {
     let testFunc = test;
 
     if (skipOnNode10 && isNode10) {
-      testFunc = test.skip;
+      testFunc = test.skip as any;
     }
 
     if (only) {
-      testFunc = test.only;
+      testFunc = test.only as any;
     }
 
     testFunc(testName, () => {
@@ -838,9 +834,7 @@ describe('stringify & parse', () => {
         expect(meta).toEqual(expectedOutputAnnotations);
       }
 
-      const untransformed = SuperJSON.deserialize(
-        JSON.parse(JSON.stringify({ json, meta }))
-      );
+      const untransformed = SuperJSON.deserialize(JSON.parse(JSON.stringify({ json, meta })));
       if (!dontExpectEquality) {
         expect(untransformed).toEqual(inputValue);
       }
@@ -860,7 +854,7 @@ describe('stringify & parse', () => {
           private topSpeed: number,
           private color: 'red' | 'blue' | 'yellow',
           private brand: string,
-          public carriages: Set<Carriage>,
+          public carriages: Set<Carriage>
         ) {}
 
         public brag() {
@@ -871,31 +865,34 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
+        s7: new Train(
+          100,
+          'yellow',
+          'Bombardier',
+          new Set([new Carriage('front'), new Carriage('back')])
+        ) as any,
       });
-      
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
           color: 'yellow',
           brand: 'Bombardier',
-          carriages: [
-            { name: 'front' },
-            { name: 'back' },
-          ],
+          carriages: [{ name: 'front' }, { name: 'back' }],
         },
       });
 
       expect(meta).toEqual({
         v: 1,
         values: {
-          s7: [['class', 'Train'], { carriages: ["set", { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] }] }],
+          s7: [
+            ['class', 'Train'],
+            { carriages: ['set', { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] }] },
+          ],
         },
       });
 
-      const deserialized: any = SuperJSON.deserialize(
-        JSON.parse(JSON.stringify({ json, meta }))
-      );
+      const deserialized: any = SuperJSON.deserialize(JSON.parse(JSON.stringify({ json, meta })));
       expect(deserialized.s7).toBeInstanceOf(Train);
       expect(deserialized.s7.carriages).toBeInstanceOf(Set);
       expect([...deserialized.s7.carriages][0]).toBeInstanceOf(Carriage);
@@ -908,7 +905,6 @@ describe('stringify & parse', () => {
         class Currency {
           constructor(private valueInUsd: number) {}
 
-          // @ts-ignore
           get inUSD() {
             return this.valueInUsd;
           }
@@ -941,7 +937,7 @@ describe('stringify & parse', () => {
 
   test('regression #65: BigInt on Safari v13', () => {
     const oldBigInt = global.BigInt;
-    // @ts-ignore
+    // @ts-expect-error Patch
     delete global.BigInt;
 
     const input = {
@@ -961,9 +957,7 @@ describe('stringify & parse', () => {
       },
     });
 
-    const deserialised = SuperJSON.deserialize(
-      JSON.parse(JSON.stringify(superJSONed))
-    );
+    const deserialised = SuperJSON.deserialize(JSON.parse(JSON.stringify(superJSONed)));
     expect(deserialised).toEqual({
       a: '1000',
     });
@@ -975,7 +969,6 @@ describe('stringify & parse', () => {
     class CustomError extends Error {
       constructor(public readonly customProperty: number) {
         super("I'm a custom error");
-        // eslint-disable-next-line es5/no-es6-static-methods
         Object.setPrototypeOf(this, CustomError.prototype);
       }
     }
@@ -997,9 +990,7 @@ describe('stringify & parse', () => {
 
 describe('allowErrorProps(...) (#91)', () => {
   it('works with simple prop values', () => {
-    const errorWithAdditionalProps: Error & any = new Error(
-      'I have additional props 😄'
-    );
+    const errorWithAdditionalProps: Error & any = new Error('I have additional props 😄');
     errorWithAdditionalProps.code = 'P2002';
     errorWithAdditionalProps.meta = '👾';
 
@@ -1037,9 +1028,7 @@ test('regression #83: negative zero', () => {
   const input = -0;
 
   const stringified = SuperJSON.stringify(input);
-  expect(stringified).toMatchInlineSnapshot(
-    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"],\\"v\\":1}}"`
-  );
+  expect(stringified).toMatchInlineSnapshot(`"{"json":"-0","meta":{"values":["number"],"v":1}}"`);
 
   const parsed: number = SuperJSON.parse(stringified);
 
@@ -1073,8 +1062,8 @@ test('regression https://github.com/blitz-js/babel-plugin-superjson-next/issues/
 test('performance regression', () => {
   const data: any[] = [];
   for (let i = 0; i < 100; i++) {
-    let nested1 = [];
-    let nested2 = [];
+    const nested1 = [];
+    const nested2 = [];
     for (let j = 0; j < 10; j++) {
       nested1[j] = {
         createdAt: new Date(),
@@ -1124,15 +1113,11 @@ test('regression #108: Error#stack should not be included by default', () => {
   const input = new Error("Beep boop, you don't wanna see me. I'm an error!");
   expect(input).toHaveProperty('stack');
 
-  const { stack: thatShouldBeUndefined } = SuperJSON.parse(
-    SuperJSON.stringify(input)
-  ) as any;
+  const { stack: thatShouldBeUndefined } = SuperJSON.parse(SuperJSON.stringify(input)) as any;
   expect(thatShouldBeUndefined).toBeUndefined();
 
   SuperJSON.allowErrorProps('stack');
-  const { stack: thatShouldExist } = SuperJSON.parse(
-    SuperJSON.stringify(input)
-  ) as any;
+  const { stack: thatShouldExist } = SuperJSON.parse(SuperJSON.stringify(input)) as any;
   expect(thatShouldExist).toEqual(input.stack);
 });
 
@@ -1148,7 +1133,7 @@ test('regression: `Object.create(null)` / object without prototype', () => {
 
 test.each(['__proto__', 'prototype', 'constructor'])(
   'serialize prototype pollution: %s',
-  forbidden => {
+  (forbidden) => {
     expect(() => {
       SuperJSON.serialize({
         [forbidden]: 1,
@@ -1171,9 +1156,7 @@ test('prototype pollution - __proto__', () => {
         },
       })
     );
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"__proto__ is not allowed as a property"`
-  );
+  }).toThrowErrorMatchingInlineSnapshot(`[Error: __proto__ is not allowed as a property]`);
   expect((Object.prototype as any).x).toBeUndefined();
 });
 
@@ -1191,9 +1174,7 @@ test('prototype pollution - prototype', () => {
         },
       })
     );
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"prototype is not allowed as a property"`
-  );
+  }).toThrowErrorMatchingInlineSnapshot(`[Error: prototype is not allowed as a property]`);
 });
 
 test('prototype pollution - constructor', () => {
@@ -1210,9 +1191,7 @@ test('prototype pollution - constructor', () => {
         },
       })
     );
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"prototype is not allowed as a property"`
-  );
+  }).toThrowErrorMatchingInlineSnapshot(`[Error: prototype is not allowed as a property]`);
 
   expect((Object.prototype as any).x).toBeUndefined();
 });
@@ -1314,9 +1293,7 @@ test('dedupe=true on a large complicated schema', () => {
     dedupe: true,
   });
 
-  const nondedupedOut = nondeduped.deserialize(
-    nondeduped.serialize(deserialized)
-  );
+  const nondedupedOut = nondeduped.deserialize(nondeduped.serialize(deserialized));
   const dedupedOut = deduped.deserialize(deduped.serialize(deserialized));
 
   expect(nondedupedOut).toEqual(deserialized);
@@ -1329,7 +1306,9 @@ test('doesnt iterate to keys that dont exist', () => {
   const objectWithReferentialEquality = { highscores, topScorer: robbyBubble };
   const res = SuperJSON.serialize(objectWithReferentialEquality);
 
+  // @ts-expect-error Patch
   expect(res.meta.referentialEqualities.topScorer).toEqual(['highscores.0.0']);
+  // @ts-expect-error Patch
   res.meta.referentialEqualities.topScorer = ['highscores.99999.0'];
 
   expect(() => SuperJSON.deserialize(res)).toThrowError('index out of bounds');

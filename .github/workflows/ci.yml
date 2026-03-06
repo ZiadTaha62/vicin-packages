@@ -1,46 +1,66 @@
-name: CI & Publish
+name: CI & Release
 
 on:
   push:
     branches: [main]
-    tags:
-      - "v*.*.*"
   pull_request:
     branches: [main]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: npm
+          node-version: 20
+          cache: "pnpm"
 
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run build
-      - run: npx size-limit
-      - run: npm run test:unit
+      - run: pnpm install --frozen-lockfile
 
-  publish:
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+      - run: pnpm turbo run build
+      - run: pnpm turbo run typecheck lint
+      - run: pnpm turbo run test
+      - run: pnpm turbo run size
+
+  release:
+    needs: ci
+    if: github.ref == 'refs/heads/main' # runs on main after PR merge
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
-          registry-url: https://registry.npmjs.org/
+          node-version: 20
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
 
-      - run: npm ci
-      - run: npm publish --access public
+      - run: pnpm install --frozen-lockfile
+
+      - name: Create Version PR or Publish to npm
+        uses: changesets/action@v1
+        with:
+          # This will automatically:
+          # 1. Create a version PR when new changesets are pushed
+          # 2. Publish to npm when the version PR is merged
+          publish: pnpm run release
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,5 +1,5 @@
-import { TypeAnnotation } from './transformer.js';
-import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer.js';
+import type { TypeAnnotation } from './transformer.js';
+import type { MinimisedTree, ReferentialEqualityAnnotations } from './plainer.js';
 
 export type Class = { new (...args: any[]): any };
 
@@ -16,7 +16,7 @@ export interface JSONObject {
 type ClassInstance = any;
 
 export type SerializableJSONValue =
-  | Symbol
+  | symbol
   | Set<SuperJSONValue>
   | Map<SuperJSONValue, SuperJSONValue>
   | undefined
@@ -25,11 +25,7 @@ export type SerializableJSONValue =
   | ClassInstance
   | RegExp;
 
-export type SuperJSONValue =
-  | JSONValue
-  | SerializableJSONValue
-  | SuperJSONArray
-  | SuperJSONObject;
+export type SuperJSONValue = JSONValue | SerializableJSONValue | SuperJSONArray | SuperJSONObject;
 
 export interface SuperJSONArray extends Array<SuperJSONValue> {}
 

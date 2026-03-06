@@ -2,38 +2,13 @@
   "name": "@vicin/phantom",
   "version": "1.1.1",
   "description": "Powerful, lightweight TypeScript library for nominal typing.",
+  "license": "MIT",
+  "author": "Ziad ziadtaha62@gmail.com",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ZiadTaha62/phantom.git"
-  },
-  "homepage": "https://github.com/ZiadTaha62/phantom#readme",
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "lint": "eslint --fix",
-    "format": "prettier --write",
-    "typecheck": "tsc --noEmit",
-    "test": "npm run test:unit && npm run test:types",
-    "test:unit": "jest tests/unit --coverage",
-    "test:types": "tsd",
-    "prepublishOnly": "npm run build && npm run test"
-  },
-  "files": [
-    "dist",
-    "README.md"
-  ],
-  "tsd": {
-    "directory": "tests/types",
-    "compilerOptions": {
-      "strict": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node"
-    }
   },
   "keywords": [
     "typescript",
@@ -53,6 +28,37 @@
     "zero-runtime",
     "type-only"
   ],
-  "author": "Ziad ziadtaha62@gmail.com",
-  "license": "MIT"
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx --watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest --coverage",
+    "test:types": "tsd",
+    "test": "vitest --coverage && tsd",
+    "prepack": "turbo run build --filter=@vicin/phantom",
+    "prepublishOnly": "turbo run test --filter=@vicin/phantom",
+    "size": "size-limit",
+    "bench": "vitest bench --run"
+  },
+  "tsd": {
+    "directory": "tests/types",
+    "compilerOptions": {
+      "strict": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZiadTaha62/vicin-packages.git",
+    "directory": "packages/phantom"
+  },
+  "homepage": "https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/phantom"
 }

@@ -15,7 +15,10 @@ export namespace DomainResult {
     }
     return ok(values);
   }
-  export function combineWith<T1, T2, E>(r1: DomainResult<T1, E>, r2: DomainResult<T2, E>): DomainResult<[T1, T2], E> {
+  export function combineWith<T1, T2, E>(
+    r1: DomainResult<T1, E>,
+    r2: DomainResult<T2, E>
+  ): DomainResult<[T1, T2], E> {
     if (r1.isErr()) return err(r1.error);
     if (r2.isErr()) return err(r2.error);
     return ok([r1.value, r2.value]);

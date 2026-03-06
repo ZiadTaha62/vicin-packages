@@ -10,13 +10,13 @@ import type { SigilOptions } from './options';
  * @returns A class decorator compatible with the ECMAScript decorator context.
  */
 export function AttachSigil(label: string, opts?: SigilOptions) {
-  return function (value: Function, context: any) {
-    if (!isSigilCtor(value))
+  return function (target: Function, ctx: any) {
+    if (!isSigilCtor(target))
       throw new Error(
-        `[Sigil Error] 'AttachSigil' decorator accept only Sigil classes but used on class '${value.name}'`
+        `[Sigil Error] 'AttachSigil' decorator accept only Sigil classes but used on class '${target.name}'`
       );
 
-    sigilify(value, label, opts);
+    sigilify(target, label, opts);
   };
 }
 

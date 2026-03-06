@@ -1,5 +1,5 @@
-import Benchmark from "benchmark"
-import SuperJSON from "./dist/index.js"
+import Benchmark from 'benchmark';
+import SuperJSON from './dist/index.js';
 
 const instances = {
   'toy example': {
@@ -8,6 +8,7 @@ const instances = {
       [2, null],
       [3, 'Hurray'],
     ]),
+    // eslint-disable-next-line no-dupe-keys
     a: /regexp/g,
     b: [new Set([1, 2, 3])],
   },
@@ -37,10 +38,7 @@ const instances = {
           friendIds: new Set(['b', 'c', 'd', 'f']),
         },
       ],
-      [
-        'umphrey',
-        { id: 'umphrey', created: new Date(2017), friendIds: new Set([]) },
-      ],
+      ['umphrey', { id: 'umphrey', created: new Date(2017), friendIds: new Set([]) }],
     ]),
   },
   'deep nested': (() => {
@@ -86,7 +84,7 @@ for (const [key, instance] of Object.entries(instances)) {
   });
 }
 
-suite.on('cycle', event => {
+suite.on('cycle', (event) => {
   console.log('' + event.target);
 });
 

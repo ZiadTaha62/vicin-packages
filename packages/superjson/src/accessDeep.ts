@@ -28,12 +28,12 @@ export const getDeep = (object: object, path: (string | number)[]): object => {
   validatePath(path);
 
   for (let i = 0; i < path.length; i++) {
-    const key = path[i];
+    const key = path[i]!;
     if (isSet(object)) {
       object = getNthKey(object, +key);
     } else if (isMap(object)) {
       const row = +key;
-      const type = +path[++i] === 0 ? 'key' : 'value';
+      const type = +path[++i]! === 0 ? 'key' : 'value';
 
       const keyOfRow = getNthKey(object, row);
       switch (type) {
@@ -52,11 +52,7 @@ export const getDeep = (object: object, path: (string | number)[]): object => {
   return object;
 };
 
-export const setDeep = (
-  object: any,
-  path: (string | number)[],
-  mapper: (v: any) => any
-): any => {
+export const setDeep = (object: any, path: (string | number)[], mapper: (v: any) => any): any => {
   validatePath(path);
 
   if (path.length === 0) {
@@ -66,7 +62,7 @@ export const setDeep = (
   let parent = object;
 
   for (let i = 0; i < path.length - 1; i++) {
-    const key = path[i];
+    const key = path[i]!;
 
     if (isArray(parent)) {
       const index = +key;
@@ -83,7 +79,7 @@ export const setDeep = (
       }
 
       const row = +key;
-      const type = +path[++i] === 0 ? 'key' : 'value';
+      const type = +path[++i]! === 0 ? 'key' : 'value';
 
       const keyOfRow = getNthKey(parent, row);
       switch (type) {
@@ -97,7 +93,7 @@ export const setDeep = (
     }
   }
 
-  const lastKey = path[path.length - 1];
+  const lastKey = path[path.length - 1]!;
 
   if (isArray(parent)) {
     parent[+lastKey] = mapper(parent[+lastKey]);
@@ -115,7 +111,7 @@ export const setDeep = (
   }
 
   if (isMap(parent)) {
-    const row = +path[path.length - 2];
+    const row = +path[path.length - 2]!;
     const keyToRow = getNthKey(parent, row);
 
     const type = +lastKey === 0 ? 'key' : 'value';

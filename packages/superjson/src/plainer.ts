@@ -1,17 +1,9 @@
-import {
-  isArray,
-  isEmptyObject,
-  isError,
-  isMap,
-  isPlainObject,
-  isPrimitive,
-  isSet,
-} from './is.js';
+import { isArray, isEmptyObject, isError, isMap, isPlainObject, isPrimitive, isSet } from './is.js';
 import { escapeKey, stringifyPath } from './pathstringifier.js';
 import {
   isInstanceOfRegisteredClass,
   transformValue,
-  TypeAnnotation,
+  type TypeAnnotation,
   untransformValue,
 } from './transformer.js';
 import { includes, forEach } from './util.js';
@@ -40,10 +32,7 @@ function traverse<T>(
   const legacyPaths = enableLegacyPaths(version);
   if (!isArray(tree)) {
     forEach(tree, (subtree, key) =>
-      traverse(subtree, walker, version, [
-        ...origin,
-        ...parsePath(key, legacyPaths),
-      ])
+      traverse(subtree, walker, version, [...origin, ...parsePath(key, legacyPaths)])
     );
     return;
   }
@@ -51,10 +40,7 @@ function traverse<T>(
   const [nodeValue, children] = tree;
   if (children) {
     forEach(children, (child, key) => {
-      traverse(child, walker, version, [
-        ...origin,
-        ...parsePath(key, legacyPaths),
-      ]);
+      traverse(child, walker, version, [...origin, ...parsePath(key, legacyPaths)]);
     });
   }
 
@@ -70,7 +56,7 @@ export function applyValueAnnotations(
   traverse(
     annotations,
     (type, path) => {
-      plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
+      plain = setDeep(plain, path, (v) => untransformValue(v, type, superJson));
     },
     version
   );
@@ -88,20 +74,16 @@ export function applyReferentialEqualityAnnotations(
     const object = getDeep(plain, parsePath(path, legacyPaths));
 
     identicalPaths
-      .map(path => parsePath(path, legacyPaths))
-      .forEach(identicalObjectPath => {
+      .map((path) => parsePath(path, legacyPaths))
+      .forEach((identicalObjectPath) => {
         plain = setDeep(plain, identicalObjectPath, () => object);
       });
   }
 
   if (isArray(annotations)) {
     const [root, other] = annotations;
-    root.forEach(identicalPath => {
-      plain = setDeep(
-        plain,
-        parsePath(identicalPath, legacyPaths),
-        () => plain
-      );
+    root.forEach((identicalPath) => {
+      plain = setDeep(plain, parsePath(identicalPath, legacyPaths), () => plain);
     });
 
     if (other) {
@@ -149,7 +131,7 @@ export function generateReferentialEqualityAnnotations(
   const result: Record<string, string[]> = {};
   let rootEqualityPaths: string[] | undefined = undefined;
 
-  identitites.forEach(paths => {
+  identitites.forEach((paths) => {
     if (paths.length <= 1) {
       return;
     }
@@ -158,19 +140,15 @@ export function generateReferentialEqualityAnnotations(
     // putting the shortest path first makes it easier to parse for humans
     // if we're deduping though, only the first entry will still exist, so we can't do this optimisation.
     if (!dedupe) {
-      paths = paths
-        .map(path => path.map(String))
-        .sort((a, b) => a.length - b.length);
+      paths = paths.map((path) => path.map(String)).sort((a, b) => a.length - b.length);
     }
 
     const [representativePath, ...identicalPaths] = paths;
 
-    if (representativePath.length === 0) {
+    if (representativePath!.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
-      result[stringifyPath(representativePath)] = identicalPaths.map(
-        stringifyPath
-      );
+      result[stringifyPath(representativePath!)] = identicalPaths.map(stringifyPath);
     }
   });
 
@@ -241,11 +219,7 @@ export const walker = (
   const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
 
   forEach(transformed, (value, index) => {
-    if (
-      index === '__proto__' ||
-      index === 'constructor' ||
-      index === 'prototype'
-    ) {
+    if (index === '__proto__' || index === 'constructor' || index === 'prototype') {
       throw new Error(
         `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
       );
@@ -275,13 +249,11 @@ export const walker = (
   const result: Result = isEmptyObject(innerAnnotations)
     ? {
         transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type]
-          : undefined,
+        annotations: transformationResult ? [transformationResult.type] : undefined,
       }
     : {
         transformedValue,
-        annotations: !!transformationResult
+        annotations: transformationResult
           ? [transformationResult.type, innerAnnotations]
           : innerAnnotations,
       };

@@ -2,7 +2,6 @@ import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-plugin-prettier';
-import pluginJest from 'eslint-plugin-jest';
 import globals from 'globals';
 
 export default defineConfig(
@@ -43,15 +42,14 @@ export default defineConfig(
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-namespace': 'off',
     },
   },
 
-  // ── Test files override ───────────────────────────────────────────────────
+  // // ── Test & Bench files override ───────────────────────────────────────────────────
   {
-    files: ['**/*.test.{ts,tsx}', 'tests/**/*.{ts,tsx}', '**/__tests__/**/*'],
-    plugins: {
-      jest: pluginJest,
-    },
+    files: ['**/*.test.{ts,tsx}', '**/*.test-d.{ts,tsx}', '**/*.bench.{ts,tsx}'],
     rules: {
       // Jest lint rules
       'jest/no-disabled-tests': 'warn',

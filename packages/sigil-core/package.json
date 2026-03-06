@@ -1,46 +1,14 @@
 {
   "name": "@vicin/sigil-core",
-  "version": "3.4.0",
-  "description": "Sigil, bulletproof class identity for large TypeScript projects",
+  "version": "1.0.0",
+  "description": "Sigil, class identity for large TypeScript projects",
+  "license": "MIT",
+  "author": "Ziad ziadtaha62@gmail.com",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ZiadTaha62/sigil.git"
-  },
-  "homepage": "https://github.com/ZiadTaha62/sigil#readme",
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsx --watch src/index.ts",
-    "lint": "eslint --fix",
-    "format": "prettier --write",
-    "typecheck": "tsc --noEmit",
-    "test": "npm run test:unit && npm run test:performance && npm run test:types",
-    "test:unit": "jest --detectOpenHandles tests/unit --coverage",
-    "test:performance": "jest --detectOpenHandles tests/performance",
-    "test:performance:creation": "jest --detectOpenHandles tests/performance/creation.test.ts",
-    "test:performance:instanceof": "jest --detectOpenHandles tests/performance/instanceof.test.ts",
-    "test:types": "tsd",
-    "prepublishOnly": "npm run build && npm run test:unit && npm run test:types",
-    "size": "size-limit",
-    "bench": "npm run test:performance"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "tsd": {
-    "directory": "tests/types",
-    "compilerOptions": {
-      "strict": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node"
-    }
   },
   "keywords": [
     "typescript",
@@ -59,12 +27,46 @@
     "ddd",
     "monorepo"
   ],
-  "author": "Ziad ziadtaha62@gmail.com",
-  "license": "MIT",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx --watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest --coverage",
+    "test:types": "tsd",
+    "test": "vitest --coverage && tsd",
+    "prepack": "turbo run build --filter=@vicin/sigil-core",
+    "prepublishOnly": "turbo run test --filter=@vicin/sigil-core",
+    "size": "size-limit",
+    "bench": "vitest bench --run",
+    "bench:creation": "vitest bench --run bench/creation.bench.ts",
+    "bench:instanceof": "vitest bench --run bench/creation.instanceof.ts"
+  },
+  "tsd": {
+    "directory": "tests/types",
+    "compilerOptions": {
+      "strict": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node"
+    }
+  },
   "size-limit": [
     {
       "path": "dist/index.js",
       "limit": "1 KB"
     }
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZiadTaha62/vicin-packages.git",
+    "directory": "packages/sigil-core"
+  },
+  "homepage": "https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/sigil-core"
 }

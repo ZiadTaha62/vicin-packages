@@ -1,4 +1,4 @@
-import { JSONValue } from './types.js';
+import type { JSONValue } from './types.js';
 import { find } from './util.js';
 
 export interface CustomTransfomer<I, O extends JSONValue> {
@@ -16,9 +16,9 @@ export class CustomTransformerRegistry {
   }
 
   findApplicable<T>(v: T) {
-    return find(this.transfomers, transformer =>
-      transformer.isApplicable(v)
-    ) as CustomTransfomer<T, JSONValue> | undefined;
+    return find(this.transfomers, (transformer) => transformer.isApplicable(v)) as
+      | CustomTransfomer<T, JSONValue>
+      | undefined;
   }
 
   findByName(name: string) {

@@ -1,10 +1,7 @@
-import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
-import { ClassRegistry, RegisterOptions } from './class-registry.js';
+import type { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
+import { ClassRegistry, type RegisterOptions } from './class-registry.js';
 import { Registry } from './registry.js';
-import {
-  CustomTransfomer,
-  CustomTransformerRegistry,
-} from './custom-transformer-registry.js';
+import { type CustomTransfomer, CustomTransformerRegistry } from './custom-transformer-registry.js';
 import {
   applyReferentialEqualityAnnotations,
   applyValueAnnotations,
@@ -44,10 +41,7 @@ export default class SuperJSON {
       };
     }
 
-    const equalityAnnotations = generateReferentialEqualityAnnotations(
-      identities,
-      this.dedupe
-    );
+    const equalityAnnotations = generateReferentialEqualityAnnotations(identities, this.dedupe);
     if (equalityAnnotations) {
       res.meta = {
         ...res.meta,
@@ -63,18 +57,14 @@ export default class SuperJSON {
   deserialize<T = unknown>(payload: SuperJSONResult, options?: { inPlace?: boolean }): T {
     const { json, meta } = payload;
 
-    let result: T = options?.inPlace ? json : copy(json) as any;
+    let result: T = options?.inPlace ? json : (copy(json) as any);
 
     if (meta?.values) {
       result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this);
     }
 
     if (meta?.referentialEqualities) {
-      result = applyReferentialEqualityAnnotations(
-        result,
-        meta.referentialEqualities,
-        meta.v ?? 0
-      );
+      result = applyReferentialEqualityAnnotations(result, meta.referentialEqualities, meta.v ?? 0);
     }
 
     return result;
@@ -93,8 +83,8 @@ export default class SuperJSON {
     this.classRegistry.register(v, options);
   }
 
-  readonly symbolRegistry = new Registry<Symbol>(s => s.description ?? '');
-  registerSymbol(v: Symbol, identifier?: string) {
+  readonly symbolRegistry = new Registry<symbol>((s) => s.description ?? '');
+  registerSymbol(v: symbol, identifier?: string) {
     this.symbolRegistry.register(v, identifier);
   }
 
@@ -115,33 +105,19 @@ export default class SuperJSON {
   }
 
   private static defaultInstance = new SuperJSON();
-  static serialize = SuperJSON.defaultInstance.serialize.bind(
-    SuperJSON.defaultInstance
-  );
-  static deserialize = SuperJSON.defaultInstance.deserialize.bind(
-    SuperJSON.defaultInstance
-  );
-  static stringify = SuperJSON.defaultInstance.stringify.bind(
-    SuperJSON.defaultInstance
-  );
-  static parse = SuperJSON.defaultInstance.parse.bind(
-    SuperJSON.defaultInstance
-  );
-  static registerClass = SuperJSON.defaultInstance.registerClass.bind(
-    SuperJSON.defaultInstance
-  );
-  static registerSymbol = SuperJSON.defaultInstance.registerSymbol.bind(
-    SuperJSON.defaultInstance
-  );
-  static registerCustom = SuperJSON.defaultInstance.registerCustom.bind(
-    SuperJSON.defaultInstance
-  );
+  static serialize = SuperJSON.defaultInstance.serialize.bind(SuperJSON.defaultInstance);
+  static deserialize = SuperJSON.defaultInstance.deserialize.bind(SuperJSON.defaultInstance);
+  static stringify = SuperJSON.defaultInstance.stringify.bind(SuperJSON.defaultInstance);
+  static parse = SuperJSON.defaultInstance.parse.bind(SuperJSON.defaultInstance);
+  static registerClass = SuperJSON.defaultInstance.registerClass.bind(SuperJSON.defaultInstance);
+  static registerSymbol = SuperJSON.defaultInstance.registerSymbol.bind(SuperJSON.defaultInstance);
+  static registerCustom = SuperJSON.defaultInstance.registerCustom.bind(SuperJSON.defaultInstance);
   static allowErrorProps = SuperJSON.defaultInstance.allowErrorProps.bind(
     SuperJSON.defaultInstance
   );
 }
 
-export { SuperJSON, SuperJSONResult, SuperJSONValue };
+export { SuperJSON, type SuperJSONResult, type SuperJSONValue };
 
 export const serialize = SuperJSON.serialize;
 export const deserialize = SuperJSON.deserialize;

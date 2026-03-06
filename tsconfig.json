@@ -29,6 +29,10 @@
     "verbatimModuleSyntax": true,
 
     /* Build hygiene */
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+
+    "experimentalDecorators": false,
+
+    "importHelpers": false
   }
 }

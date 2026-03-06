@@ -1,3 +1,4 @@
+import { describe, beforeEach, afterEach, test, expect } from 'vitest';
 import {
   Sigil,
   SigilError,
@@ -562,21 +563,6 @@ describe('Sigil core runtime behavior', () => {
     expect(A.SigilLabel).toBe(label);
   });
 
-  test("[Edge cases] 'AttachSigil' decorator using IIFE static initializer", () => {
-    const label = generateRandomLabel();
-    let labelInsideIIF: string = '';
-
-    @AttachSigil(label)
-    class A extends Sigil {
-      static M = (() => {
-        labelInsideIIF = A.SigilLabel;
-      })();
-    }
-
-    expect(A.SigilLabel).toBe(label);
-    expect(labelInsideIIF).toBe(label);
-  });
-
   test("[Edge cases] 'attachSigil' function using IIFE static initializer", () => {
     const label = generateRandomLabel();
     let labelInsideIIF: string = '';
@@ -591,34 +577,26 @@ describe('Sigil core runtime behavior', () => {
 
     expect(A.SigilLabel).toBe(label);
     expect(labelInsideIIF).toMatch('Sigil');
-  });
-
-  test("[Edge cases] 'AttachSigil' decorator using static block", () => {
-    const label = generateRandomLabel();
-    let labelInsideBlockA: string = '';
-    let labelInsideBlockThis: string = '';
 
     @AttachSigil(label)
-    class A extends Sigil {
-      static {
-        labelInsideBlockA = A.SigilLabel;
-        labelInsideBlockThis = this.SigilLabel;
-      }
+    class B extends Sigil {
+      static M = (() => {
+        labelInsideIIF = B.SigilLabel;
+      })();
     }
 
-    expect(A.SigilLabel).toBe(label);
-    expect(labelInsideBlockA).toBe(label);
-    expect(labelInsideBlockThis).toBe(label);
+    expect(B.SigilLabel).toBe(label);
+    expect(labelInsideIIF).toMatch('Sigil');
   });
 
-  test("[Edge cases] 'attachSigil' function using static block", () => {
+  test('[Edge cases] static block', () => {
     const label = generateRandomLabel();
-    let labelInsideBlockA: string = '';
+    let labelInsideBlock: string = '';
     let labelInsideBlockThis: string = '';
 
     class A extends Sigil {
       static {
-        labelInsideBlockA = A.SigilLabel;
+        labelInsideBlock = A.SigilLabel;
         labelInsideBlockThis = this.SigilLabel;
       }
     }
@@ -626,7 +604,19 @@ describe('Sigil core runtime behavior', () => {
     attachSigil(A, label);
 
     expect(A.SigilLabel).toBe(label);
-    expect(labelInsideBlockA).toMatch('Sigil');
+    expect(labelInsideBlock).toMatch('Sigil');
+    expect(labelInsideBlockThis).toMatch('Sigil');
+
+    @AttachSigil(label)
+    class B extends Sigil {
+      static {
+        labelInsideBlock = B.SigilLabel;
+        labelInsideBlockThis = this.SigilLabel;
+      }
+    }
+
+    expect(B.SigilLabel).toBe(label);
+    expect(labelInsideBlock).toMatch('Sigil');
     expect(labelInsideBlockThis).toMatch('Sigil');
   });
 });

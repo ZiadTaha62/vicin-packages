@@ -12,7 +12,7 @@
       "outputs": ["dist/**"]
     },
     "size": {
-      "dependsOn": ["^size"]
+      "dependsOn": ["build"]
     },
     "test": {
       "dependsOn": ["build"]
