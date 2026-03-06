@@ -1,5 +1,5 @@
-import { bench, describe } from 'vitest';
-import { Sigil, Sigilify, AttachSigil, attachSigil } from '../src';
+import { bench, describe, test, expect } from 'vitest';
+import { Sigil, AttachSigil, attachSigil } from '../src';
 
 const DEPTH = [0, 3, 5, 10, 15];
 
