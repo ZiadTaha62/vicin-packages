@@ -1,0 +1,73 @@
+{
+  "name": "@vicin/sigil",
+  "version": "3.4.0",
+  "description": "Sigil, bulletproof class identity for large TypeScript projects",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZiadTaha62/sigil.git"
+  },
+  "homepage": "https://github.com/ZiadTaha62/sigil#readme",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx --watch src/index.ts",
+    "lint": "eslint --fix",
+    "format": "prettier --write",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:performance && npm run test:types",
+    "test:unit": "jest --detectOpenHandles tests/unit --coverage",
+    "test:performance": "jest --detectOpenHandles tests/performance",
+    "test:performance:creation": "jest --detectOpenHandles tests/performance/creation.test.ts",
+    "test:performance:instanceof": "jest --detectOpenHandles tests/performance/instanceof.test.ts",
+    "test:types": "tsd",
+    "prepublishOnly": "npm run build && npm run test:unit && npm run test:types",
+    "size": "size-limit",
+    "bench": "npm run test:performance"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "tsd": {
+    "directory": "tests/types",
+    "compilerOptions": {
+      "strict": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node"
+    }
+  },
+  "keywords": [
+    "typescript",
+    "nominal-typing",
+    "runtime-identity",
+    "class-identity",
+    "instanceof",
+    "cross-bundle",
+    "symbol",
+    "registry",
+    "label-based",
+    "type-branding",
+    "type-safe",
+    "inheritance",
+    "domain-driven-design",
+    "ddd",
+    "monorepo"
+  ],
+  "author": "Ziad ziadtaha62@gmail.com",
+  "license": "MIT",
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "1 KB"
+    }
+  ],
+  "dependencies": {
+    "@vicin/sigil-core": "workspace:*"
+  }
+}

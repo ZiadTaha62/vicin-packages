@@ -1,0 +1,61 @@
+/** -----------------------------------------
+ *  Types
+ * ----------------------------------------- */
+
+/**
+ * Configuration options for the Sigil library.
+ *
+ * These options control runtime validation, inheritance checks, label autofill behavior.
+ */
+export interface SigilOptions {
+  /**
+   * Validation rule applied to sigil labels before registration.
+   *
+   * - A function receives the label and must return `true` if valid.
+   * - A `RegExp` must match the label.
+   * - `null` disables validation entirely.
+   *
+   * Defaults to `null`.
+   */
+  labelValidation?: ((label: string) => boolean) | RegExp | null;
+}
+
+/** -----------------------------------------
+ *  Internal options object
+ * ----------------------------------------- */
+
+/**
+ * Defined SigilOptions used in the library.
+ *
+ * @internal
+ */
+export const OPTIONS: Required<SigilOptions> = {
+  labelValidation: null,
+};
+
+/** -----------------------------------------
+ *  Update options
+ * ----------------------------------------- */
+
+/**
+ * Update runtime options for the Sigil library.
+ * Call this early during application startup if you want non-default behavior.
+ *
+ * @param opts - Partial options to merge into the global `OPTIONS` object.
+ */
+export const updateSigilOptions = ({ labelValidation = null }: SigilOptions = {}): void => {
+  OPTIONS.labelValidation = labelValidation;
+};
+
+/** -----------------------------------------
+ *  Label validation
+ * ----------------------------------------- */
+
+/**
+ * Label validation regex. Labels must follow the pattern
+ * `@scope/package.ClassName` where `ClassName` begins with an uppercase
+ * letter. This avoids collisions across packages and helps debugging.
+ *
+ * It's advised to use this regex in 'SigilOptions.labelValidation'.
+ */
+export const RECOMMENDED_LABEL_REGEX = /^@[\w-]+(?:\/[\w-]+)*\.[A-Z][A-Za-z0-9]*$/;

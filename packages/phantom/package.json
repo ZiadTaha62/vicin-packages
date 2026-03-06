@@ -1,0 +1,58 @@
+{
+  "name": "@vicin/phantom",
+  "version": "1.1.1",
+  "description": "Powerful, lightweight TypeScript library for nominal typing.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZiadTaha62/phantom.git"
+  },
+  "homepage": "https://github.com/ZiadTaha62/phantom#readme",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint --fix",
+    "format": "prettier --write",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:types",
+    "test:unit": "jest tests/unit --coverage",
+    "test:types": "tsd",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "tsd": {
+    "directory": "tests/types",
+    "compilerOptions": {
+      "strict": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node"
+    }
+  },
+  "keywords": [
+    "typescript",
+    "nominal-typing",
+    "ddd",
+    "domain-driven-design",
+    "branding",
+    "branded-types",
+    "type-safety",
+    "metadata",
+    "type-metadata",
+    "identity",
+    "traits",
+    "type-transformations",
+    "state-variants",
+    "type-pipe",
+    "zero-runtime",
+    "type-only"
+  ],
+  "author": "Ziad ziadtaha62@gmail.com",
+  "license": "MIT"
+}

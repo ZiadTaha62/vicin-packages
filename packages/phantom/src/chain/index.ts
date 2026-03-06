@@ -1,0 +1,1 @@
+export { PhantomChain } from './chain';
