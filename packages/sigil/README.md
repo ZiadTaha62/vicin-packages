@@ -1,8 +1,8 @@
 # Sigil
 
-[![npm version](https://img.shields.io/npm/v/@vicin/sigil.svg)](https://www.npmjs.com/package/@vicin/sigil) [![npm downloads](https://img.shields.io/npm/dm/@vicin/sigil.svg)](https://www.npmjs.com/package/@vicin/sigil) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue) [![Build](https://github.com/ZiadTaha62/sigil/actions/workflows/ci.yml/badge.svg)](https://github.com/ZiadTaha62/sigil/actions/workflows/ci.yml) ![bundle size](https://img.shields.io/bundlephobia/minzip/@vicin/sigil)
+[![npm version](https://img.shields.io/npm/v/@vicin/sigil.svg)](https://www.npmjs.com/package/@vicin/sigil) [![npm downloads](https://img.shields.io/npm/dm/@vicin/sigil.svg)](https://www.npmjs.com/package/@vicin/sigil) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue) [![Build](https://github.com/ZiadTaha62/vicin-packages/actions/workflows/ci.yml/badge.svg)](https://github.com/ZiadTaha62/vicin-packages/actions/workflows/ci.yml) ![bundle size](https://img.shields.io/bundlephobia/minzip/@vicin/sigil)
 
-> - 🎉 v3.0.0 is out! Happy coding! 😄💻
+> - 🎉 v4.0.0 is out! Happy coding! 😄💻
 > - 📄 **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
 
 **Sigil** — bulletproof class identity for large TypeScript projects.
@@ -11,12 +11,21 @@ Reliable `instanceof`-style checks that survive bundling, HMR, monorepos and rea
 
 ## Why Sigil?
 
-- Works when `instanceof` breaks (multi-bundle, HMR, separate realms)
-- Exact class match (`isExactInstance`) — not just "inherits from"
-- One-line nominal branding (`declare [sigil]: ExtendSigil<…>`)
-- Human-readable class IDs in logs & debugging (`SigilLabel`/`SigilLineage`)
-- Tiny (~0.9 kB brotli) & fast (≈ `instanceof` speed)
-- 100% test coverage
+- **Works when `instanceof` breaks** (multi-bundle, HMR, separate realms)
+- **Exact class match (`isExactInstance`)** — not just "inherits from"
+- **One-line nominal branding** (`declare [sigil]: ExtendSigil<…>`)
+- **Human-readable class IDs in logs & debugging** (`SigilLabel`/`SigilLineage`)
+- **Tiny (~0.9 kB brotli)**
+- **Fast (near native `instanceof` speed)**
+- **100% test coverage**
+
+## Limitations
+
+- **Identity is explicit and dependent on passed labels**, If same label is passed to two different classes `Sigil` will treat them as one
+- **Identity is updated with every new label passed only**, If you stopped passing labels to child classes their identity will stop at last passed label
+- **`Sigil` is not built for security**, identity can be forged
+
+Earlier versions of `Sigil` tried to solve these limitations, however it was not `100%` reliable, so we decided to make this package minimal and stable, while adding new features in future package `@vicin/sigil-extend`
 
 ---
 
@@ -117,8 +126,6 @@ class User extends Sigil {}
 attachSigil(User, '@myorg/mypkg.User');
 ```
 
-> Note: Function pattern is susceptible to some [Edge case subtle pitfalls](#edge-cases) if not used appropriately, so we advise to use decorator pattern
-
 ### Migration
 
 1. Pass your base class to `Sigilify` mixin:
@@ -182,7 +189,7 @@ type test1 = User extends Sigil ? true : false; // true
 type test2 = Sigil extends User ? true : false; // false
 ```
 
-- **Need for stable class id**: Most large projects implement there own labels (e.g. to be used in logs)
+- **Need for stable class id**: Most large projects implement their own labels (e.g. to be used in logs)
 
 ### Implementation Mechanics
 
@@ -253,10 +260,8 @@ type test2 = User extends Admin ? true : false; // false
 // Passed label must be unique (enforced by Sigil) so can be used as stable Id for class
 // Also 'SigilLabelLineage' is useful for logging & debugging
 console.log(Admin.SigilLabel); // '@myorg/Admin'
-console.log(Admin.SigilEffectiveLabel); // '@myorg/Admin'
 console.log(Admin.SigilLabelLineage); // ['Sigil', '@myorg/User', '@myorg/Admin']
 console.log(admin.SigilLabel); // '@myorg/Admin'
-console.log(admin.getSigilEffectiveLabel); // '@myorg/Admin'
 console.log(admin.SigilLabelLineage); // ['Sigil', '@myorg/User', '@myorg/Admin']
 ```
 
@@ -434,9 +439,10 @@ Note that you can't use `InstanceType` on `private` or `protected` classes, howe
 
 #### Static blocks & IIFE static initializer
 
-Decorators ensure that metadata is appended before static blocks or IIFE static initializers, however `attachSigil` function runs after them so accessing label inside them will return auto-generated label or throw:
+Stage 3 decorators (`AttachSigil`) and function (`attachSigil`) runs after IIFE and static blocks, so accessing `Sigil` metadata inside them should be avoided
 
 ```ts
+@AttachSigil('A')
 class A extends Sigil {
   static IIFE = (() => {
     const label = A.SigilLabel; // returns label of the parent (Sigil in our case)
@@ -446,11 +452,7 @@ class A extends Sigil {
     const label = this.SigilLabel; // returns label of the parent (Sigil in our case)
   }
 }
-
-attachSigil(A, 'A');
 ```
-
-This behavior can't be avoided, so make sure not to call any `Sigil` method inside them or move to decorators (`@AttachSigil`)
 
 ---
 
@@ -460,47 +462,73 @@ Sigil is built for **real-world performance**. Below are the latest micro-benchm
 
 **Running Tests**
 
-To run benchmarks on your machine fetch source code from [github](https://github.com/ZiadTaha62/sigil) then:
+To run benchmarks on your machine fetch source code from [github](https://github.com/ZiadTaha62/vicin-packages) then:
 
 ```bash
-npm install
-npm run bench
+pnpm install
+pnpm run bench --filter @vicin/sigil
 ```
 
 ### 1. Runtime Type Checking
 
-| Depth | `instanceof` (per op) | `isInstance` (ctor) | `isInstance` (instance) | `isExactInstance` (ctor) | `isExactInstance` (instance) |
-| ----- | --------------------- | ------------------- | ----------------------- | ------------------------ | ---------------------------- |
-| 0     | 0.000009 ms           | 0.000018 ms         | **0.000018 ms**         | 0.000027 ms              | 0.000011 ms                  |
-| 3     | 0.000032 ms           | 0.000037 ms         | **0.000027 ms**         | 0.000038 ms              | **0.000058 ms**              |
-| 5     | 0.000041 ms           | 0.000036 ms         | **0.000028 ms**         | 0.000037 ms              | **0.000034 ms**              |
-| 10    | 0.000048 ms           | 0.000036 ms         | **0.000028 ms**         | 0.000038 ms              | **0.000034 ms**              |
-| 15    | 0.000064 ms           | 0.000057 ms         | **0.000050 ms**         | 0.000069 ms              | **0.000075 ms**              |
+| Test Name                  | Ops/sec (hz) | Mean (ms) | p99 (ms) | RME    | Samples   |
+| -------------------------- | ------------ | --------- | -------- | ------ | --------- |
+| **Depth 0**                |              |           |          |        |           |
+| instanceof                 | 11,986,628   | 0.0001    | 0.0002   | ±0.58% | 5,993,314 |
+| isInstance (Ctor)          | 8,848,040    | 0.0001    | 0.0003   | ±0.63% | 4,424,020 |
+| isInstance (instance)      | 9,246,878    | 0.0001    | 0.0002   | ±0.86% | 4,623,440 |
+| isExactInstance (Ctor)     | 5,114,916    | 0.0002    | 0.0003   | ±0.44% | 2,557,459 |
+| isExactInstance (instance) | 5,553,370    | 0.0002    | 0.0003   | ±0.41% | 2,776,686 |
+| **Depth 5**                |              |           |          |        |           |
+| instanceof                 | 8,399,150    | 0.0001    | 0.0002   | ±0.48% | 4,199,651 |
+| isInstance (Ctor)          | 7,385,890    | 0.0001    | 0.0003   | ±2.01% | 3,692,945 |
+| isInstance (instance)      | 7,862,474    | 0.0001    | 0.0003   | ±0.77% | 3,931,238 |
+| isExactInstance (Ctor)     | 4,433,700    | 0.0002    | 0.0004   | ±0.64% | 2,216,851 |
+| isExactInstance (instance) | 4,898,498    | 0.0002    | 0.0004   | ±0.34% | 2,449,249 |
+| **Depth 10**               |              |           |          |        |           |
+| instanceof                 | 7,144,486    | 0.0001    | 0.0003   | ±0.63% | 3,572,243 |
+| isInstance (Ctor)          | 7,165,920    | 0.0001    | 0.0003   | ±0.49% | 3,582,960 |
+| isInstance (instance)      | 7,834,056    | 0.0001    | 0.0003   | ±1.16% | 3,917,029 |
+| isExactInstance (Ctor)     | 4,292,578    | 0.0002    | 0.0004   | ±0.34% | 2,146,290 |
+| isExactInstance (instance) | 5,020,923    | 0.0002    | 0.0004   | ±0.28% | 2,510,462 |
+| **Depth 15**               |              |           |          |        |           |
+| instanceof                 | 7,116,266    | 0.0001    | 0.0002   | ±0.38% | 3,558,134 |
+| isInstance (Ctor)          | 6,308,498    | 0.0002    | 0.0003   | ±0.41% | 3,154,249 |
+| isInstance (instance)      | 6,403,126    | 0.0002    | 0.0003   | ±0.70% | 3,201,564 |
+| isExactInstance (Ctor)     | 3,678,280    | 0.0003    | 0.0005   | ±0.37% | 1,839,141 |
+| isExactInstance (instance) | 3,753,618    | 0.0003    | 0.0005   | ±0.39% | 1,876,810 |
 
-> **Key takeaway**:  
-> `isInstance` & `isExactInstance` has **practically the same performance as native `instanceof`**, slightly **slower** on static calls and slightly **faster** on the instance side.
+> **Key takeaway**:
+>
+> `isInstance` Efficiency: Demonstrates high parity with native instanceof, maintaining a minimal performance delta (approx. 15% overhead).
+> `isExactInstance` Cost-Benefit: While introducing a ~2x overhead compared to native operations, it remains performant in absolute terms. The throughput cost is a deliberate trade-off for the increased precision required for exact matching.
 
 ### 2. Class Definition & Instance Creation
 
-| Scenario                        | Definition (per class) | Instantiation (per instance) |
-| ------------------------------- | ---------------------- | ---------------------------- |
-| Empty plain class               | 0.0101 ms              | 0.0002 ms                    |
-| Empty Sigil class               | 0.0915 ms              | 0.0007 ms                    |
-| Small (5 props + 3 methods)     | 0.0177 ms              | 0.0034 ms                    |
-| Small Sigil                     | 0.0942 ms              | 0.0051 ms                    |
-| Large (15 props + 10 methods)   | 0.0225 ms              | 0.0097 ms                    |
-| Large Sigil                     | 0.1034 ms              | 0.0119 ms                    |
-| Extended chain depth 3 – plain  | 0.0538 ms              | 0.0085 ms                    |
-| Extended chain depth 3 – Sigil  | 0.2328 ms              | 0.0087 ms                    |
-| Extended chain depth 5 – plain  | 0.0902 ms              | 0.0177 ms                    |
-| Extended chain depth 5 – Sigil  | 0.3686 ms              | 0.0194 ms                    |
-| Extended chain depth 10 – plain | 0.1973 ms              | 0.0581 ms                    |
-| Extended chain depth 10 – Sigil | 0.7015 ms              | 0.0621 ms                    |
+| Test Name                             | Ops/sec (hz)      | Mean (ms)        | p99 (ms)         | RME     | Samples   |
+| ------------------------------------- | ----------------- | ---------------- | ---------------- | ------- | --------- |
+| **Definition (Module Load Time)**     |                   |                  |                  |         |           |
+| Define Empty (Plain vs Sigil)         | 122,640 vs 13,154 | 0.0082 vs 0.0760 | 0.0206 vs 0.1413 | ±11.36% | 6,578     |
+| Define Small (Plain vs Sigil)         | 75,363 vs 12,003  | 0.0133 vs 0.0833 | 0.0267 vs 0.1596 | ±5.98%  | 6,002     |
+| Define Large (Plain vs Sigil)         | 53,392 vs 11,978  | 0.0187 vs 0.0835 | 0.0352 vs 0.1471 | ±6.13%  | 5,990     |
+| Define Depth 3 (Plain vs Sigil)       | 22,802 vs 5,205   | 0.0439 vs 0.1921 | 0.0850 vs 0.3139 | ±14.68% | 2,603     |
+| Define Depth 5 (Plain vs Sigil)       | 12,003 vs 3,369   | 0.0833 vs 0.2968 | 0.1864 vs 0.5488 | ±7.31%  | 1,685     |
+| Define Depth 10 (Plain vs Sigil)      | 5,477 vs 1,758    | 0.1826 vs 0.5685 | 0.3402 vs 1.1148 | ±9.62%  | 880       |
+| **Instantiation (Runtime/Hot Path)**  |                   |                  |                  |         |           |
+| Instantiate Empty (Plain vs Sigil)    | 12.0M vs 11.9M    | 0.0001 vs 0.0001 | 0.0002 vs 0.0002 | ±0.76%  | 5,999,555 |
+| Instantiate Small (Plain vs Sigil)    | 12.5M vs 11.4M    | 0.0001 vs 0.0001 | 0.0001 vs 0.0002 | ±0.89%  | 5,739,986 |
+| Instantiate Large (Plain vs Sigil)    | 12.4M vs 12.4M    | 0.0001 vs 0.0001 | 0.0002 vs 0.0001 | ±0.74%  | 6,205,306 |
+| Instantiate Depth 3 (Plain vs Sigil)  | 12.0M vs 12.1M    | 0.0001 vs 0.0001 | 0.0002 vs 0.0002 | ±1.01%  | 6,092,517 |
+| Instantiate Depth 5 (Plain vs Sigil)  | 9.09M vs 8.54M    | 0.0001 vs 0.0001 | 0.0002 vs 0.0003 | ±2.24%  | 4,272,328 |
+| Instantiate Depth 10 (Plain vs Sigil) | 2.87M vs 1.72M    | 0.0003 vs 0.0006 | 0.0008 vs 0.0011 | ±0.75%  | 862,564   |
 
 > **Key takeaways**:
 >
-> - Class definition is a **one-time cost** at module load time. Even at depth 10 the cost stays well under 1 ms per class.
-> - Instance creation adds a small fixed overhead of ~0.4–0.6 µs per object, which becomes completely negligible as your classes grow in size and complexity.
+> Front-Loaded Definition Overhead: Sigil introduces main overhead during the class definition phase (roughly 6x to 10x slower than plain classes). This is a one-time cost per class, typically occurring during module evaluation or registry setup.
+>
+> Runtime Performance Parity: Once the class is defined, Sigil achieves near-native instantiation throughput. For standard object creation, the delta is negligible, ensuring that the library does not bottleneck high-frequency allocation patterns.
+>
+> Scale Stability: The overhead of Sigil remains constant regardless of the number of properties or methods added (Small vs. Large). The definition speed for a "Small Sigil" and a "Large Sigil" is nearly identical (~12k hz), suggesting that the setup logic is O(1) relative to class member count.
 
 ---
 
@@ -512,11 +540,11 @@ This makes Sigil one of the smallest full-featured solutions for nominal typing 
 
 **Running Tests**
 
-To verify bundle size fetch source code from [github](https://github.com/ZiadTaha62/sigil) then:
+To verify bundle size fetch source code from [github](https://github.com/ZiadTaha62/vicin-packages) then:
 
 ```bash
-npm install
-npm run size
+pnpm install
+pnpm run size --filter @vicin/sigil
 ```
 
 ---
@@ -536,11 +564,11 @@ We maintain **100%** test coverage across the entire codebase to ensure that run
 
 **Running Tests**
 
-To run the test suite locally and generate a coverage report, fetch source code from [github](https://github.com/ZiadTaha62/sigil) then:
+To run the test suite locally and generate a coverage report, fetch source code from [github](https://github.com/ZiadTaha62/vicin-packages) then:
 
 ```bash
-npm install
-npm run test:unit
+pnpm install
+pnpm run test --filter @vicin/sigil
 ```
 
 ---
