@@ -55,6 +55,12 @@
       "moduleResolution": "node"
     }
   },
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "1 KB"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ZiadTaha62/vicin-packages.git",
