@@ -1,4 +1,4 @@
-// import { WithSigil, type SigilOptions } from '@vicin/sigil-core';
+// import { WithSigil, type SigilOptions } from '@vicin/sigil';
 // import { ValueObject, Entity } from '../core';
 // import type { AggregateRootStatic } from '../core/aggregate-root';
 

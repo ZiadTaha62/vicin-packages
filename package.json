@@ -2,7 +2,11 @@
   "name": "@vicin/packages",
   "version": "1.0.0",
   "description": "",
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "keywords": [],
+  "packageManager": "pnpm@10.26.1",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -16,10 +20,12 @@
     "release": "changeset publish",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.26.1",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "pnpm exec prettier --write"
+    ]
+  },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
     "@eslint/js": "^10.0.1",
@@ -33,6 +39,7 @@
     "globals": "^17.3.0",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
+    "lint-staged": "^16.3.2",
     "prettier": "^3.8.1",
     "size-limit": "^12.0.0",
     "tsd": "^0.33.0",

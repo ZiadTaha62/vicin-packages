@@ -9,5 +9,5 @@ export default defineConfig({
   minify: process.env.NODE_ENV === 'production',
   target: 'es2019',
   treeshake: true,
-  external: ['@vicin/sigil-core'],
+  external: ['@vicin/sigil'],
 });

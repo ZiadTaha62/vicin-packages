@@ -23,11 +23,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm turbo run build
-      - run: pnpm turbo run lint
-      - run: pnpm turbo run typecheck
-      - run: pnpm turbo run test
-      - run: pnpm turbo run size
+      - run: pnpm turbo run build --filter=...[origin/main] --cache-dir=.turbo
+      - run: pnpm turbo run lint --filter=...[origin/main]
+      - run: pnpm turbo run typecheck --filter=...[origin/main]
+      - run: pnpm turbo run test --filter=...[origin/main]
+      - run: pnpm turbo run size --filter=...[origin/main]
 
   release:
     needs: ci
@@ -42,8 +42,6 @@ jobs:
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
