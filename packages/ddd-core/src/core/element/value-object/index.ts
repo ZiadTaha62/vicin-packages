@@ -1,1 +1,2 @@
-export { ValueObject } from './class';
+// export { ValueObject } from './class';
+export {};

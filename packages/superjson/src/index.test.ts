@@ -4,7 +4,7 @@ import SuperJSON from './index.js';
 import type { JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet, isTypedArray } from './is.js';
 
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Decimal } from 'decimal.js';
 
 import { describe, it, expect, test } from 'vitest';
@@ -515,17 +515,17 @@ describe('stringify & parse', () => {
 
     'works for custom transformers': {
       input: () => {
-        SuperJSON.registerCustom<ObjectID, string>(
+        SuperJSON.registerCustom<ObjectId, string>(
           {
-            isApplicable: (v): v is ObjectID => v instanceof ObjectID,
+            isApplicable: (v): v is ObjectId => v instanceof ObjectId,
             serialize: (v) => v.toHexString(),
-            deserialize: (v) => new ObjectID(v),
+            deserialize: (v) => new ObjectId(v),
           },
           'objectid'
         );
 
         return {
-          a: new ObjectID('5f7887f4f0b172093e89f126'),
+          a: new ObjectId('5f7887f4f0b172093e89f126'),
         };
       },
       output: {

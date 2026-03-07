@@ -21,8 +21,11 @@ export default defineConfig(
       parserOptions: {
         project: [
           './tsconfig.json',
-          './packages/core/tsconfig.json',
-          './packages/extended/tsconfig.json',
+          './packages/ddd-core/tsconfig.json',
+          './packages/phantom/tsconfig.json',
+          './packages/sigil/tsconfig.json',
+          './packages/sigil-core/tsconfig.json',
+          './packages/superjson/tsconfig.json',
         ],
         tsconfigRootDir: import.meta.dirname,
       },
