@@ -2,4 +2,4 @@
 '@vicin/sigil': major
 ---
 
-Moved towards minimal set with updated APIs
+Moved toward minimal set with updated APIs
