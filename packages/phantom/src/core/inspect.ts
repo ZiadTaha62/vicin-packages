@@ -1,17 +1,5 @@
-import type {
-  BrandCore,
-  IdentityCore,
-  TraitCore,
-  TransformationCore,
-} from './composed';
-import type {
-  BaseCore,
-  InputCore,
-  LabelCore,
-  TagCore,
-  TraitsCore,
-  VariantsCore,
-} from './fields';
+import type { IdentityCore, TraitCore, TransformationCore } from './composed';
+import type { BaseCore, InputCore, LabelCore, TagCore, TraitsCore, VariantsCore } from './fields';
 
 /**
  * Inspect API.
@@ -26,10 +14,7 @@ export namespace Inspect {
   /** Extract the tag from a type */
   export type TagOf<T> = TagCore.TagOf<T>;
   /** Check whether a type is tagged */
-  export type HasTag<
-    T,
-    Ta extends string | symbol = string | symbol,
-  > = TagCore.HasTag<T, Ta>;
+  export type HasTag<T, Ta extends string | symbol = string | symbol> = TagCore.HasTag<T, Ta>;
   /** Extract variant union */
   export type VariantsOf<T> = VariantsCore.VariantsOf<T>;
   /** Check whether variants exist */
@@ -48,17 +33,8 @@ export namespace Inspect {
   export type TraitKeysOf<T> = TraitsCore.TraitKeysOf<T>;
   /** Check if any traits exist */
   export type HasTraits<T> = TraitsCore.HasTraits<T>;
-  /**
-   * Check whether value is branded with
-   *
-   * @deprecated To unify Api surface 'isIdentity' should be used instea, will be removed in v2.0.0. for more info check 'https://www.npmjs.com/package/@vicin/phantom#deprecated-api'
-   */
-  export type isBrand<T, B extends BrandCore.Any> = BrandCore.isBrand<T, B>;
   /** Check whether value is branded with */
-  export type isIdentity<
-    T,
-    I extends IdentityCore.Any,
-  > = IdentityCore.isIdentity<T, I>;
+  export type isIdentity<T, I extends IdentityCore.Any> = IdentityCore.isIdentity<T, I>;
   /** Check whether value has trait */
   export type HasTrait<T, Tr extends TraitCore.Any> = TraitCore.HasTrait<T, Tr>;
   /** Check whether value is transformed with */

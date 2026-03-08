@@ -2,7 +2,6 @@ import {
   addTrait,
   addTraits,
   applyTransformation,
-  asBrand,
   asIdentity,
   dropTrait,
   dropTraits,
@@ -16,18 +15,24 @@ import type {
   TagCore,
   TraitsCore,
   VariantsCore,
-  BrandCore,
   IdentityCore,
   TraitCore,
   TransformationCore,
   ErrorType,
+  __Base,
+  __Input,
+  __Label,
+  __OriginalType,
+  __Phantom,
+  __Tag,
+  __Traits,
+  __Variants,
 } from './core';
 import { PhantomCore } from './core';
 
 const _addTrait = addTrait;
 const _addTraits = addTraits;
 const _applyTransformation = applyTransformation;
-const _asBrand = asBrand;
 const _asIdentity = asIdentity;
 const _dropTrait = dropTrait;
 const _dropTraits = dropTraits;
@@ -51,10 +56,7 @@ export namespace Phantom {
     /** Extract the label */
     export type LabelOf<T> = LabelCore.LabelOf<T>;
     /** Check whether a label exists */
-    export type HasLabel<T, L extends string = string> = LabelCore.HasLabel<
-      T,
-      L
-    >;
+    export type HasLabel<T, L extends string = string> = LabelCore.HasLabel<T, L>;
   }
 
   /**
@@ -69,10 +71,7 @@ export namespace Phantom {
     /** Extract the tag from a type */
     export type TagOf<T> = TagCore.TagOf<T>;
     /** Check whether a type is tagged */
-    export type HasTag<
-      T,
-      Ta extends string | symbol = string | symbol,
-    > = TagCore.HasTag<T, Ta>;
+    export type HasTag<T, Ta extends string | symbol = string | symbol> = TagCore.HasTag<T, Ta>;
   }
 
   /**
@@ -132,34 +131,10 @@ export namespace Phantom {
     /** Extract trait keys */
     export type TraitKeysOf<T> = TraitsCore.TraitKeysOf<T>;
     /** Check if any traits exist */
-    export type HasTraits<
+    export type HasTraits<T, Tr extends string | symbol = string | symbol> = TraitsCore.HasTraits<
       T,
-      Tr extends string | symbol = string | symbol,
-    > = TraitsCore.HasTraits<T, Tr>;
-  }
-
-  /**
-   * Branding API.
-   *
-   * Brands provide nominal typing for otherwise identical values.
-   * A value may only be branded once.
-   *
-   * @deprecated To unify Api surface 'Identity' should be used instea, will be removed in v2.0.0. for more info check 'https://www.npmjs.com/package/@vicin/phantom#deprecated-api'
-   */
-  export namespace Brand {
-    /** Type guard for any brand. */
-    export type Any = BrandCore.Any;
-    /** Declare a brand */
-    export type Declare<
-      T extends string | symbol,
-      L extends string = never,
-    > = BrandCore.Declare<T, L>;
-    /** Assign a brand to a value. Fails if the value is already branded */
-    export type Assign<B extends Any, T> = BrandCore.Assign<B, T>;
-    /** Assign a brand if possible, otherwise return the original type */
-    export type AssignSafe<B extends Any, T> = BrandCore.AssignSafe<B, T>;
-    /** Check whether value is branded with */
-    export type isBrand<T, B extends Brand.Any> = BrandCore.isBrand<T, B>;
+      Tr
+    >;
   }
 
   /**
@@ -176,7 +151,7 @@ export namespace Phantom {
     export type Declare<
       T extends string | symbol,
       L extends string = never,
-      B extends unknown = never,
+      B = never,
       V extends string = never,
     > = IdentityCore.Declare<T, L, B, V>;
     /** Assign an identity to a value. Enforces base-type compatibility */
@@ -189,10 +164,10 @@ export namespace Phantom {
       V extends Variants.VariantsOf<I>,
     > = IdentityCore.WithVariant<I, V>;
     /** Set the active variant on a value */
-    export type WithTypeVariant<
+    export type WithTypeVariant<T, V extends Variants.VariantsOf<T>> = IdentityCore.WithTypeVariant<
       T,
-      V extends Variants.VariantsOf<T>,
-    > = IdentityCore.WithTypeVariant<T, V>;
+      V
+    >;
     /** Check whether value is branded with */
     export type isIdentity<T, I extends Any> = IdentityCore.isIdentity<T, I>;
   }
@@ -211,17 +186,11 @@ export namespace Phantom {
     /** Add a trait */
     export type Add<Tr extends Any, T> = TraitCore.Add<Tr, T>;
     /** Add multiple traits */
-    export type AddMulti<Tr extends readonly Any[], T> = TraitCore.AddMulti<
-      Tr,
-      T
-    >;
+    export type AddMulti<Tr extends readonly Any[], T> = TraitCore.AddMulti<Tr, T>;
     /** Remove a trait */
     export type Drop<Tr extends Any, T> = TraitCore.Drop<Tr, T>;
     /** Remove multiple traits */
-    export type DropMulti<Tr extends readonly Any[], T> = TraitCore.DropMulti<
-      Tr,
-      T
-    >;
+    export type DropMulti<Tr extends readonly Any[], T> = TraitCore.DropMulti<Tr, T>;
     /** Check whether value has trait */
     export type HasTrait<T, Tr extends Any> = TraitCore.HasTrait<T, Tr>;
   }
@@ -240,28 +209,17 @@ export namespace Phantom {
       I,
       T extends string | symbol,
       L extends string = never,
-      B extends unknown = never,
+      B = never,
       V extends string = never,
     > = TransformationCore.Declare<I, T, L, B, V>;
     /** Apply a transformation to a value. Enforces base-type compatibility */
-    export type Apply<Tr extends Any, I, T> = TransformationCore.Apply<
-      Tr,
-      I,
-      T
-    >;
+    export type Apply<Tr extends Any, I, T> = TransformationCore.Apply<Tr, I, T>;
     /** Revert a transformation */
-    export type Revert<Tr extends Any, T, I> = TransformationCore.Revert<
-      Tr,
-      T,
-      I
-    >;
+    export type Revert<Tr extends Any, T, I> = TransformationCore.Revert<Tr, T, I>;
     /** Revert a transformation whatever transformation was */
     export type RevertAny<T, I> = TransformationCore.RevertAny<T, I>;
     /** Check whether value is transformed with */
-    export type isTransformed<
-      T,
-      Tr extends Any,
-    > = TransformationCore.isTransformed<T, Tr>;
+    export type isTransformed<T, Tr extends Any> = TransformationCore.isTransformed<T, Tr>;
   }
 
   /**
@@ -279,17 +237,11 @@ export namespace Phantom {
     /** Extract the label */
     export type LabelOf<T> = LabelCore.LabelOf<T>;
     /** Check whether a base constraint exists */
-    export type HasLabel<T, L extends string = string> = LabelCore.HasLabel<
-      T,
-      L
-    >;
+    export type HasLabel<T, L extends string = string> = LabelCore.HasLabel<T, L>;
     /** Extract the tag from a type */
     export type TagOf<T> = TagCore.TagOf<T>;
     /** Check whether a type is tagged */
-    export type HasTag<
-      T,
-      Ta extends string | symbol = string | symbol,
-    > = TagCore.HasTag<T, Ta>;
+    export type HasTag<T, Ta extends string | symbol = string | symbol> = TagCore.HasTag<T, Ta>;
     /** Extract variant union */
     export type VariantsOf<T> = VariantsCore.VariantsOf<T>;
     /** Check whether variants exist */
@@ -307,28 +259,19 @@ export namespace Phantom {
     /** Extract trait keys */
     export type TraitKeysOf<T> = TraitsCore.TraitKeysOf<T>;
     /** Check if any traits exist */
-    export type HasTraits<
+    export type HasTraits<T, Tr extends string | symbol = string | symbol> = TraitsCore.HasTraits<
       T,
-      Tr extends string | symbol = string | symbol,
-    > = TraitsCore.HasTraits<T, Tr>;
-    /**
-     * Check whether value is branded with
-     *
-     * @deprecated To unify Api surface 'isIdentity' should be used instea, will be removed in v2.0.0. for more info check 'https://www.npmjs.com/package/@vicin/phantom#deprecated-api'
-     */
-    export type isBrand<T, B extends Brand.Any> = BrandCore.isBrand<T, B>;
-    /** Check whether value is branded with */
-    export type isIdentity<T, I extends Identity.Any> = IdentityCore.isIdentity<
-      T,
-      I
+      Tr
     >;
+    /** Check whether value is branded with */
+    export type isIdentity<T, I extends Identity.Any> = IdentityCore.isIdentity<T, I>;
     /** Check whether value has trait */
     export type HasTrait<T, Tr extends Trait.Any> = TraitCore.HasTrait<T, Tr>;
     /** Check whether value is transformed with */
-    export type isTransformed<
+    export type isTransformed<T, Tr extends Transformation.Any> = TransformationCore.isTransformed<
       T,
-      Tr extends Transformation.Any,
-    > = TransformationCore.isTransformed<T, Tr>;
+      Tr
+    >;
   }
 
   /** --------------------------------------
@@ -336,20 +279,6 @@ export namespace Phantom {
    * --------------------------------------- */
 
   export namespace assertors {
-    /**
-     * Creates a typed caster that assigns a {@link Brand} to a value.
-     *
-     * This is a zero-cost runtime assertion helper — it simply returns the value
-     * with the brand's nominal type applied. Use it for simple branded primitives
-     * where you know the value is valid.
-     *
-     * @deprecated To unify Api surface 'asIdentity' should be used instea, will be removed in v2.0.0. for more info check 'https://www.npmjs.com/package/@vicin/phantom#deprecated-api'
-     *
-     * @template B - The brand declaration to assign.
-     * @returns A function that casts any value to the branded type.
-     */
-    export const asBrand = _asBrand;
-
     /**
      * Creates a typed caster that assigns an {@link Identity} to a value.
      *
@@ -429,20 +358,6 @@ export namespace Phantom {
      */
     export const revertTransformation = _revertTransformation;
   }
-
-  /**
-   * Creates a typed caster that assigns a {@link Brand} to a value.
-   *
-   * This is a zero-cost runtime assertion helper — it simply returns the value
-   * with the brand's nominal type applied. Use it for simple branded primitives
-   * where you know the value is valid.
-   *
-   * @deprecated To unify Api surface 'asIdentity' should be used instea, will be removed in v2.0.0. for more info check 'https://www.npmjs.com/package/@vicin/phantom#deprecated-api'
-   *
-   * @template B - The brand declaration to assign.
-   * @returns A function that casts any value to the branded type.
-   */
-  export const asBrand = _asBrand;
 
   /**
    * Creates a typed caster that assigns an {@link Identity} to a value.

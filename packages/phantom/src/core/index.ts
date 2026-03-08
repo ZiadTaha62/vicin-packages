@@ -8,7 +8,6 @@ export type { ErrorType } from './errors';
 // Public fields and composed types
 export type {
   Base,
-  Brand,
   Identity,
   Input,
   Label,
@@ -25,24 +24,24 @@ export type { Inspect } from './inspect';
 // Only exposed core type, handles main '__Phantom' field in phantom object
 export { PhantomCore, stripPhantom } from './phantom';
 
+// Symbols
+export type {
+  __Base,
+  __Input,
+  __Label,
+  __OriginalType,
+  __Phantom,
+  __Tag,
+  __Traits,
+  __Variants,
+} from './symbols';
+
 /** --------------------------------------
  * Internal types
  * --------------------------------------- */
 
 // Internal core fields
-export type {
-  BaseCore,
-  InputCore,
-  LabelCore,
-  TagCore,
-  TraitsCore,
-  VariantsCore,
-} from './fields';
+export type { BaseCore, InputCore, LabelCore, TagCore, TraitsCore, VariantsCore } from './fields';
 
 // Internal core composed
-export type {
-  BrandCore,
-  IdentityCore,
-  TraitCore,
-  TransformationCore,
-} from './composed';
+export type { IdentityCore, TraitCore, TransformationCore } from './composed';

@@ -15,7 +15,7 @@
 - [Install](#install)
 - [Core concepts](#core-concepts)
   - [Terminology](#terminology)
-  - [\_\_Phantom object](#__phantom-object)
+  - [Phantom object](#phantom-object)
 - [Type constructs](#type-constructs)
   - [Identities with constraints](#identities-with-constraints)
   - [Traits (additive capabilities)](#traits-additive-capabilities)
@@ -90,7 +90,7 @@ pnpm add @vicin/phantom
 
 ---
 
-### \_\_Phantom object
+### Phantom object
 
 Under the hood `Phantom` is just **type-only** metadata object appended to your types and gets updated every time one of phantom types is used. This allows mimicking nominal typing inside TypeScript's structural typing.
 
@@ -449,11 +449,7 @@ Instead you can use `PhantomChain` class:
 ```ts
 import { PhantomChain } from '@vicin/phantom';
 
-const userId = new PhantomChain('123')
-  .with(asUserId)
-  .with(addPII)
-  .with(addValidated)
-  .end();
+const userId = new PhantomChain('123').with(asUserId).with(addPII).with(addValidated).end();
 ```
 
 The `.with()` is order sensitive, so previous example is equivalent to `addValidated(addPII(asUserId("123")))`. also if any `ErrorType` is retuned at any stage of the chain, the chain will break and error will propagate unchanged making debugging much easier.
@@ -784,12 +780,7 @@ Also it can be used in one-way transformations (e.g. `Hashed`):
 import { Transformation, assertors } from '@vicin/phantom';
 
 declare const __Hashed: unique symbol;
-type Hashed<I = unknown> = Transformation.Declare<
-  I,
-  typeof __Hashed,
-  'Hashed value',
-  string
->;
+type Hashed<I = unknown> = Transformation.Declare<I, typeof __Hashed, 'Hashed value', string>;
 const applyHash = assertors.applyTransformation<Hashed>();
 
 function hash<V>(value: V) {

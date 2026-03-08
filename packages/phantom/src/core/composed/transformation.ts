@@ -1,18 +1,6 @@
-import type {
-  InputCore,
-  BaseCore,
-  LabelCore,
-  TagCore,
-  VariantsCore,
-} from '../fields';
+import type { InputCore, BaseCore, LabelCore, TagCore, VariantsCore } from '../fields';
 import type { ErrorType, Errors } from '../errors';
-import type {
-  HandleOriginalType,
-  PatchMetadata,
-  Prettify,
-  WithMetadata,
-  IfNever,
-} from './helpers';
+import type { HandleOriginalType, PatchMetadata, Prettify, WithMetadata, IfNever } from './helpers';
 
 /**
  * Transformation API.
@@ -29,7 +17,7 @@ export namespace TransformationCore {
     I,
     T extends string | symbol,
     L extends string = never,
-    B extends unknown = never,
+    B = never,
     V extends string = never,
   > = IfNever<B, unknown> &
     Prettify<
@@ -68,8 +56,7 @@ export namespace TransformationCore {
       : ErrorType<Errors<never, T>['notTransformed']>;
 
   /** Revert a transformation whatever transformation was */
-  export type RevertAny<T, I> =
-    T extends ErrorType<any> ? T : _RevertAny<HandleOriginalType<T>>;
+  export type RevertAny<T, I> = T extends ErrorType<any> ? T : _RevertAny<HandleOriginalType<T>>;
 
   /** Internal implementation of 'Transformation.RevertAny' */
   type _RevertAny<T> =

@@ -1,12 +1,6 @@
 import type { BaseCore, LabelCore, TagCore, VariantsCore } from '../fields';
 import type { ErrorType, Errors } from '../errors';
-import type {
-  HandleOriginalType,
-  PatchMetadata,
-  Prettify,
-  WithMetadata,
-  IfNever,
-} from './helpers';
+import type { HandleOriginalType, PatchMetadata, Prettify, WithMetadata, IfNever } from './helpers';
 
 /**
  * Identity API.
@@ -23,14 +17,11 @@ export namespace IdentityCore {
   export type Declare<
     T extends string | symbol,
     L extends string = never,
-    B extends unknown = never,
+    B = never,
     V extends string = never,
   > = IfNever<B, unknown> &
     Prettify<
-      TagCore.Of<T> &
-        LabelCore.OfIfExists<L> &
-        BaseCore.OfIfExists<B> &
-        VariantsCore.OfIfExists<V>
+      TagCore.Of<T> & LabelCore.OfIfExists<L> & BaseCore.OfIfExists<B> & VariantsCore.OfIfExists<V>
     >;
 
   /**
@@ -61,10 +52,10 @@ export namespace IdentityCore {
         : ErrorType<Errors<I, T>['typeNotExtendBase']>;
 
   /** Set the active variant on an identity */
-  export type WithVariant<
-    I extends Any,
-    V extends VariantsCore.VariantsOf<I>,
-  > = PatchMetadata<I, VariantsCore.Of<V>>;
+  export type WithVariant<I extends Any, V extends VariantsCore.VariantsOf<I>> = PatchMetadata<
+    I,
+    VariantsCore.Of<V>
+  >;
 
   /** Set the active variant on a value */
   export type WithTypeVariant<T, V extends VariantsCore.VariantsOf<T>> =

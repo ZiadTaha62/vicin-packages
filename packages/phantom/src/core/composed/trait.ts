@@ -9,6 +9,7 @@ import type {
   WithMetadata,
   WithoutMetadata,
 } from './helpers';
+import type { __Traits, __OriginalType } from '../symbols';
 
 /**
  * Trait API.
@@ -30,9 +31,7 @@ export namespace TraitCore {
   /** Internal implementation of 'Trait.Add' */
   type _Add<Tr extends Any, T> = WithMetadata<
     T,
-    TraitsCore.FromMap<
-      IfNever<TraitsCore.TraitsOf<T>> & IfNever<TraitsCore.TraitsOf<Tr>>
-    >
+    TraitsCore.FromMap<IfNever<TraitsCore.TraitsOf<T>> & IfNever<TraitsCore.TraitsOf<Tr>>>
   >;
 
   /** Add multiple traits */
@@ -43,8 +42,7 @@ export namespace TraitCore {
   type _AddMulti<Tr extends readonly Any[], T> = WithMetadata<
     T,
     TraitsCore.FromMap<
-      IfNever<TraitsCore.TraitsOf<T>> &
-        IfNever<TraitsCore.TraitsOf<IntersectOf<Tr[number]>>>
+      IfNever<TraitsCore.TraitsOf<T>> & IfNever<TraitsCore.TraitsOf<IntersectOf<Tr[number]>>>
     >
   >;
 
@@ -55,17 +53,12 @@ export namespace TraitCore {
   /** Internal implementation of 'Trait.Drop' */
   type _Drop<Tr extends Any, T> =
     Equals<TraitsCore.TraitKeysOf<Tr>, TraitsCore.TraitKeysOf<T>> extends true
-      ? Equals<
-          keyof PhantomCore.PhantomOf<T>,
-          '__OriginalType' | '__Traits'
-        > extends true
+      ? Equals<keyof PhantomCore.PhantomOf<T>, typeof __OriginalType | typeof __Traits> extends true
         ? PhantomCore.StripPhantom<T>
-        : WithoutMetadata<T, '__Traits'>
+        : WithoutMetadata<T, typeof __Traits>
       : WithMetadata<
           T,
-          TraitsCore.FromMap<
-            Omit<TraitsCore.TraitsOf<T>, TraitsCore.TraitKeysOf<Tr>>
-          >
+          TraitsCore.FromMap<Omit<TraitsCore.TraitsOf<T>, TraitsCore.TraitKeysOf<Tr>>>
         >;
 
   /** Remove multiple traits */
@@ -74,23 +67,14 @@ export namespace TraitCore {
 
   /** Internal implementation of 'Trait.DropMulti' */
   type _DropMulti<Tr extends readonly Any[], T> =
-    Equals<
-      TraitsCore.TraitKeysOf<IntersectOf<Tr[number]>>,
-      TraitsCore.TraitKeysOf<T>
-    > extends true
-      ? Equals<
-          keyof PhantomCore.PhantomOf<T>,
-          '__OriginalType' | '__Traits'
-        > extends true
+    Equals<TraitsCore.TraitKeysOf<IntersectOf<Tr[number]>>, TraitsCore.TraitKeysOf<T>> extends true
+      ? Equals<keyof PhantomCore.PhantomOf<T>, typeof __OriginalType | typeof __Traits> extends true
         ? PhantomCore.StripPhantom<T>
-        : WithoutMetadata<T, '__Traits'>
+        : WithoutMetadata<T, typeof __Traits>
       : WithMetadata<
           T,
           TraitsCore.FromMap<
-            Omit<
-              TraitsCore.TraitsOf<T>,
-              TraitsCore.TraitKeysOf<IntersectOf<Tr[number]>>
-            >
+            Omit<TraitsCore.TraitsOf<T>, TraitsCore.TraitKeysOf<IntersectOf<Tr[number]>>>
           >
         >;
 

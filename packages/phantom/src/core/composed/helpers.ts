@@ -1,4 +1,5 @@
 import type { PhantomCore } from '../phantom';
+import type { __Phantom, __OriginalType, __Base, __Traits } from '../symbols';
 
 /** --------------------------------------
  * PhantomCore type helpers
@@ -8,14 +9,11 @@ import type { PhantomCore } from '../phantom';
  * Attach or override phantom metadata while preserving
  * the original runtime type.
  */
-export type WithMetadata<
-  T,
-  Change extends object,
-> = PhantomCore.StripPhantom<T> & {
-  __Phantom: Prettify<
+export type WithMetadata<T, Change extends object> = PhantomCore.StripPhantom<T> & {
+  [__Phantom]: Prettify<
     Merge<
       IfNever<PhantomCore.PhantomOf<T>>,
-      Omit<IfNever<PhantomCore.PhantomOf<Change>>, '__Base'> & SetType<T>
+      Omit<IfNever<PhantomCore.PhantomOf<Change>>, typeof __Base> & SetType<T>
     >
   >;
 };
@@ -25,47 +23,38 @@ export type WithMetadata<
  * Used when mutating metadata declarations themselves.
  */
 export type PatchMetadata<T, Change extends object> = {
-  __Phantom: Prettify<
-    Merge<
-      IfNever<PhantomCore.PhantomOf<T>>,
-      IfNever<PhantomCore.PhantomOf<Change>>
-    >
+  [__Phantom]: Prettify<
+    Merge<IfNever<PhantomCore.PhantomOf<T>>, IfNever<PhantomCore.PhantomOf<Change>>>
   >;
 };
 
 /**
  * Remove a metadata dimension while preserving the original type.
  */
-export type WithoutMetadata<
-  T,
-  S extends string,
-> = PhantomCore.StripPhantom<T> & {
-  __Phantom: Prettify<Omit<IfNever<PhantomCore.PhantomOf<T>>, S> & SetType<T>>;
+export type WithoutMetadata<T, S extends symbol> = PhantomCore.StripPhantom<T> & {
+  [__Phantom]: Prettify<Omit<IfNever<PhantomCore.PhantomOf<T>>, S> & SetType<T>>;
 };
 
 /**
  * Remove metadata without preserving original type information.
  * Intended for internal cleanup.
  */
-export type StripMetadata<T, S extends string> = {
-  __Phantom: Prettify<Omit<IfNever<PhantomCore.PhantomOf<T>>, S>>;
+export type StripMetadata<T, S extends symbol> = {
+  [__Phantom]: Prettify<Omit<IfNever<PhantomCore.PhantomOf<T>>, S>>;
 };
 
 /**
  * Update '__OriginalType' if the passed type is changed.
  */
 export type HandleOriginalType<T> =
-  Equals<
-    Omit<PhantomCore.StripPhantom<T>, never>,
-    Omit<T, '__Phantom'>
-  > extends true
+  Equals<Omit<PhantomCore.StripPhantom<T>, never>, Omit<T, typeof __Phantom>> extends true
     ? T
-    : Omit<T, '__Phantom'> &
+    : Omit<T, typeof __Phantom> &
         PatchMetadata<
           T,
           {
-            __Phantom: {
-              __OriginalType?: Omit<T, '__Phantom'>;
+            [__Phantom]: {
+              [__OriginalType]?: Omit<T, typeof __Phantom>;
             };
           }
         >;
@@ -80,9 +69,9 @@ export type HandleOriginalType<T> =
  * This is used to maintain a stable runtime type while layering
  * additional phantom metadata.
  */
-type SetType<T> = T extends { __Phantom: { __OriginalType?: infer O } }
-  ? { __OriginalType?: O }
-  : { __OriginalType?: T };
+type SetType<T> = T extends { [__Phantom]: { [__OriginalType]?: infer O } }
+  ? { [__OriginalType]?: O }
+  : { [__OriginalType]?: T };
 
 /** --------------------------------------
  * Generic helpers
@@ -90,14 +79,12 @@ type SetType<T> = T extends { __Phantom: { __OriginalType?: infer O } }
 
 /** Prettify type */
 export type Prettify<T> = {
-  [K in keyof T]: K extends '__Phantom' | '__Traits' ? Prettify<T[K]> : T[K];
+  [K in keyof T]: K extends typeof __Phantom | typeof __Traits ? Prettify<T[K]> : T[K];
 } & {};
 
 /** Check equality and returns true or false */
-export type Equals<A1 extends any, A2 extends any> =
-  (<A>() => A extends A2 ? true : false) extends <A>() => A extends A1
-    ? true
-    : false
+export type Equals<A1, A2> =
+  (<A>() => A extends A2 ? true : false) extends <A>() => A extends A1 ? true : false
     ? true
     : false;
 
@@ -105,13 +92,11 @@ export type Equals<A1 extends any, A2 extends any> =
 export type IfNever<T, R = {}> = [T] extends [never] ? R : T;
 
 /** Get intersection from union */
-export type IntersectOf<U extends any> = (
-  U extends unknown ? (k: U) => void : never
-) extends (k: infer I) => void
+export type IntersectOf<U> = (U extends unknown ? (k: U) => void : never) extends (
+  k: infer I
+) => void
   ? I
   : never;
 
 /** Merge two objects. if matching keys between the two exists, the second object key value is used.  */
-type Merge<O1 extends object, O2 extends object> = Prettify<
-  Omit<O1, keyof O2> & O2
->;
+type Merge<O1 extends object, O2 extends object> = Prettify<Omit<O1, keyof O2> & O2>;

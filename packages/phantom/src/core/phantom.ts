@@ -1,13 +1,15 @@
+import type { __Phantom, __OriginalType, __Base } from './symbols';
+
 /** Stip phantom metadata object from a type */
 type StripPhantom<T> = T extends {
-  __Phantom: { __OriginalType?: infer O }; // If type result from ( .Assign / .Add / .Apply )
+  [__Phantom]: { [__OriginalType]?: infer O }; // If type result from ( .Assign / .Add / .Apply )
 }
   ? Exclude<O, undefined>
   : T extends {
-        __Phantom: { __Base?: infer B }; // If type result from ( Identity.Declare / Transformation.Declare )
+        [__Phantom]: { [__Base]?: infer B }; // If type result from ( Identity.Declare / Transformation.Declare )
       }
     ? Exclude<B, undefined>
-    : T extends { __Phantom: object } // If type result from ( Trait.Declare )
+    : T extends { [__Phantom]: object } // If type result from ( Trait.Declare )
       ? unknown
       : T;
 

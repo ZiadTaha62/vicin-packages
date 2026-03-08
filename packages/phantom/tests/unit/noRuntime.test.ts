@@ -2,14 +2,6 @@ import { describe, test, expect } from 'vitest';
 import { Phantom } from '../../dist';
 
 describe('Zero runtime effect of assertors', () => {
-  test('Brand', () => {
-    type X = Phantom.Brand.Declare<'X'>;
-    const asX = Phantom.assertors.asBrand<X>();
-
-    const value = 'some value';
-    expect(asX(value)).toBe(value);
-  });
-
   test('Identity', () => {
     type X = Phantom.Identity.Declare<'X'>;
 
