@@ -6,6 +6,9 @@
   "author": "",
   "type": "module",
   "keywords": [],
+  "publishConfig": {
+    "access": "public"
+  },
   "packageManager": "pnpm@10.26.1",
   "scripts": {
     "build": "turbo run build",
