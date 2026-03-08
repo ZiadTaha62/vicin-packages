@@ -4,35 +4,39 @@
 
 `Vicin` project aims to simplify DDD and nominal typing in typescript.
 
+## Packages
+
 It's composed of these child packages:
 
-## Sigil
+### Sigil
 
 Bulletproof class identity for large TypeScript projects.
 
 - npm: [@vicin/sigil](https://www.npmjs.com/package/@vicin/sigil)
 - github: [@vicin/sigil](https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/sigil)
 
-## Phantom
+### Phantom
 
 Powerful, lightweight TypeScript library for nominal typing.
 
 - npm: [@vicin/phantom](https://www.npmjs.com/package/@vicin/phantom)
 - github: [@vicin/phantom](https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/phantom)
 
-## Superjson
+### Superjson
 
 Fork of [superjson](https://github.com/flightcontrolhq/superjson) still under development
 
 - npm: [@vicin/superjson](https://www.npmjs.com/package/@vicin/superjson)
 - github: [@vicin/superjson](https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/superjson)
 
-## DDD-core
+### DDD-core
 
 Still under development
 
 - npm: [@vicin/ddd-core](https://www.npmjs.com/package/@vicin/ddd-core)
 - github: [@vicin/ddd-core](https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/ddd-core)
+
+---
 
 ## License
 
