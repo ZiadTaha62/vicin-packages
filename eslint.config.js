@@ -21,11 +21,11 @@ export default defineConfig(
       parserOptions: {
         project: [
           './tsconfig.json',
-          './packages/ddd-core/tsconfig.json',
           './packages/phantom/tsconfig.json',
           './packages/sigil/tsconfig.json',
-          './packages/sigil-core/tsconfig.json',
           './packages/superjson/tsconfig.json',
+          './packages/ddd-core/tsconfig.json',
+          './packages/vicin/tsconfig.json',
         ],
         tsconfigRootDir: import.meta.dirname,
       },
@@ -54,14 +54,6 @@ export default defineConfig(
   {
     files: ['**/*.test.{ts,tsx}', '**/*.test-d.{ts,tsx}', '**/*.bench.{ts,tsx}'],
     rules: {
-      // Jest lint rules
-      'jest/no-disabled-tests': 'warn',
-      'jest/no-focused-tests': 'error',
-      'jest/no-identical-title': 'error',
-      'jest/prefer-to-have-length': 'warn',
-      'jest/valid-expect': 'error',
-
-      // Modified normal lint
       'no-console': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',

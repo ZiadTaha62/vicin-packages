@@ -1,5 +1,5 @@
 import Benchmark from 'benchmark';
-import SuperJSON from './dist/index.js';
+import SuperJSON from '../dist/index.js';
 
 const instances = {
   'toy example': {

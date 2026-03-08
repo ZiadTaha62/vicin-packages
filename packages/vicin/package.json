@@ -1,9 +1,12 @@
 {
-  "name": "@vicin/superjson",
+  "private": "true",
+  "name": "vicin",
   "version": "1.0.0",
+  "description": "Vicin",
   "license": "MIT",
+  "author": "Ziad ziadtaha62@gmail.com",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
@@ -25,31 +28,27 @@
     "test:unit": "vitest --coverage --run",
     "test:types": "tsd --files tests/types/**/*.test-d.ts",
     "test": "vitest --coverage --run && tsd --files tests/types/**/*.test-d.ts",
-    "prepack": "turbo run build --filter=@vicin/superjson",
-    "prepublishOnly": "turbo run test --filter=@vicin/superjson",
+    "prepack": "turbo run build --filter=vicin",
+    "prepublishOnly": "turbo run test --filter=vicin",
     "size": "size-limit",
-    "bench": "vitest bench --run && node ./bench/benchmark.js"
+    "bench": "vitest bench --run"
   },
   "size-limit": [
     {
       "path": "dist/index.js",
-      "limit": "5 KB"
+      "limit": "100 KB"
     }
   ],
-  "devDependencies": {
-    "@types/debug": "^4.1.12",
-    "decimal.js": "^10.6.0",
-    "mongodb": "^7.1.0",
-    "typescript": "^5.9.3"
-  },
   "dependencies": {
-    "benchmark": "^2.1.4",
-    "copy-anything": "^4"
+    "@vicin/sigil": "workspace:*",
+    "@vicin/phantom": "workspace:*",
+    "@vicin/superjson": "workspace:*",
+    "@vicin/ddd-core": "workspace:*"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ZiadTaha62/vicin-packages.git",
-    "directory": "packages/superjson"
+    "directory": "packages/vicin"
   },
-  "homepage": "https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/superjson"
+  "homepage": "https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/vicin"
 }
