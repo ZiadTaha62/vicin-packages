@@ -34,7 +34,7 @@ jobs:
     if: github.ref == 'refs/heads/main' # runs on main after PR merge
     permissions:
       contents: write
-      pull-requests: write
+      pull-requests: write # comment
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
