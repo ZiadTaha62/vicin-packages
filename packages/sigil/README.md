@@ -15,7 +15,7 @@ Reliable `instanceof`-style checks that survive bundling, HMR, monorepos and rea
 - **Exact class match (`isExactInstance`)** — not just "inherits from"
 - **One-line nominal branding** (`declare [sigil]: ExtendSigil<…>`)
 - **Human-readable class IDs in logs & debugging** (`SigilLabel`/`SigilLineage`)
-- **Tiny (~0.9 kB brotli)**
+- **Tiny (~1 kB brotli)**
 - **Fast (near native `instanceof` speed)**
 - **100% test coverage**
 
@@ -45,9 +45,6 @@ Earlier versions of `Sigil` tried to solve these limitations, however it was not
   - [Errors & throws](#errors--throws)
 - [API reference](#api-reference)
 - [Options & configuration](#options--configuration)
-- [Minimal mode](#minimal-mode)
-- [Strict mode](#strict-mode)
-- [Hot module reload](#hot-module-reload)
 - [Edge cases](#edge-cases)
 - [Benchmarks](#benchmarks)
 - [Bundle Size](#bundle-size)
@@ -534,7 +531,7 @@ pnpm run bench --filter @vicin/sigil
 
 ## Bundle Size
 
-**Less than 1 KB (908 B)** (minified + Brotli, including all dependencies)
+**Less than 1 kB (997 B)** (minified + Brotli, including all dependencies)
 
 This makes Sigil one of the smallest full-featured solutions for nominal typing + reliable runtime identity.
 

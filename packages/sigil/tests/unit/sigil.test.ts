@@ -27,12 +27,14 @@ describe('Sigil core runtime behavior', () => {
   beforeEach(() => {
     updateSigilOptions({
       labelValidation: null,
+      strict: false,
     });
   });
 
   afterEach(() => {
     updateSigilOptions({
       labelValidation: null,
+      strict: false,
     });
   });
 

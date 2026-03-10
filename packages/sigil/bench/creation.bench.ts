@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { Sigil, Sigilify, attachSigil } from '../src';
+import { Sigil, Sigilify, attachSigil } from '../dist';
 
 const uniqueLabel = (base: string) =>
   `${base}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
