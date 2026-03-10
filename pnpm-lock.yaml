@@ -96,6 +96,9 @@ importers:
 
   packages/superjson:
     dependencies:
+      '@vicin/sigil':
+        specifier: workspace:*
+        version: link:../sigil
       benchmark:
         specifier: ^2.1.4
         version: 2.1.4

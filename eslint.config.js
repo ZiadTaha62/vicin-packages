@@ -58,6 +58,7 @@ export default defineConfig(
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
     },
   }
 );
