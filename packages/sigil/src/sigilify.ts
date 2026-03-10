@@ -1,15 +1,12 @@
 import { OPTIONS, type SigilOptions } from './options';
 import { __LABEL__, __SIGIL__, __SIGIL_LINEAGE__, __DEPTH__ } from './symbols';
+import { getSigilRegistry } from './registry';
 
 /** -----------------------------------------
- *  Maps
+ *  Get registry
  * ----------------------------------------- */
 
-/** Weak set to ensure that every ctor is handled only once */
-const resolved = new WeakSet<Function>();
-
-/** Weak set to store ctors that called sigilify function */
-const hasOwnSigilRegistry = new WeakSet<Function>();
+const sigilRegistry = getSigilRegistry();
 
 /** -----------------------------------------
  *  Main helpers
@@ -18,7 +15,7 @@ const hasOwnSigilRegistry = new WeakSet<Function>();
 /** Main function to handle 'Sigil' and attach its metadata to the class when label is passed */
 export function sigilify(ctor: Function, label: string, opts?: SigilOptions): void {
   // throw if already seen
-  if (resolved.has(ctor))
+  if (sigilRegistry.checkResolved(ctor))
     throw new Error(
       `[Sigil Error] Class '${ctor.name}' with label '${(ctor as any).SigilLabel}' is already sigilified`
     );
@@ -29,12 +26,12 @@ export function sigilify(ctor: Function, label: string, opts?: SigilOptions): vo
   // sigilify ctor
   updateSigil(ctor, label);
   // mark as seen and register in hasOwnSigil set
-  resolved.add(ctor);
-  hasOwnSigilRegistry.add(ctor);
+  sigilRegistry.registerResolved(ctor);
+  sigilRegistry.registerHasOwn(ctor);
 }
 
 export function hasOwnSigil(ctor: Function) {
-  return hasOwnSigilRegistry.has(ctor);
+  return sigilRegistry.checkHasOwn(ctor);
 }
 
 /** -----------------------------------------
@@ -60,7 +57,7 @@ export function verifyLabel<L extends string>(label: L, opts?: SigilOptions): vo
 function handleAncestors(ctor: Function) {
   let a = Object.getPrototypeOf(ctor);
   while (a && typeof a === 'function' && a.prototype[__SIGIL__]) {
-    resolved.add(a);
+    sigilRegistry.registerResolved(a);
     a = Object.getPrototypeOf(a);
   }
 }
@@ -89,7 +86,7 @@ function updateSigil(ctor: Function, label: string) {
     writable: false,
   });
   Object.defineProperty(ctor.prototype, __SIGIL_LINEAGE__, {
-    value: [...(Object.getPrototypeOf(ctor)?.prototype[__SIGIL_LINEAGE__] ?? []), sym],
+    value: [...(Object.getPrototypeOf(ctor).prototype[__SIGIL_LINEAGE__] ?? []), sym],
     configurable: false,
     enumerable: false,
     writable: false,

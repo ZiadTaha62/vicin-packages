@@ -11,7 +11,8 @@ import {
   updateSigilOptions,
   RECOMMENDED_LABEL_REGEX,
   hasOwnSigil,
-} from '../../src';
+} from '../../dist';
+import { getSigilRegistry } from '../../src/registry';
 
 const labels = new Set<string>();
 
@@ -618,5 +619,21 @@ describe('Sigil core runtime behavior', () => {
     expect(B.SigilLabel).toBe(label);
     expect(labelInsideBlock).toMatch('Sigil');
     expect(labelInsideBlockThis).toMatch('Sigil');
+  });
+
+  /** ----------------------
+   *  Registry
+   * ---------------------- */
+
+  test('[Registry] properties', () => {
+    const reg = getSigilRegistry();
+    expect(reg).toHaveProperty('registerResolved');
+    expect(reg).toHaveProperty('checkResolved');
+    expect(reg).toHaveProperty('registerHasOwn');
+    expect(reg).toHaveProperty('checkHasOwn');
+  });
+
+  test('[Registry] No override', () => {
+    expect(getSigilRegistry()).toBe(getSigilRegistry());
   });
 });

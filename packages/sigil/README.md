@@ -555,12 +555,12 @@ pnpm run size --filter @vicin/sigil
 
 We maintain **100%** test coverage across the entire codebase to ensure that runtime metadata remains consistent and predictable.
 
-| Metric | Score |
-| ------ | ----- |
-| Stmts  | 100%  |
-| Branch | 100%  |
-| Funcs  | 100%  |
-| Lines  | 100%  |
+| Metric | Score  |
+| ------ | ------ |
+| Stmts  | 96.96% |
+| Branch | 100%   |
+| Funcs  | 100%   |
+| Lines  | 100%   |
 
 **Running Tests**
 

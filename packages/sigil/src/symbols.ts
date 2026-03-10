@@ -27,3 +27,10 @@ export const __LABEL__ = Symbol.for('@vicin/sigil.__LABEL__');
  * @constant {symbol}
  */
 export const __DEPTH__ = Symbol.for('@vicin/sigil.__DEPTH__');
+
+/**
+ * Symbol of global Sigil registry
+ *
+ * @constant {symbol}
+ */
+export const __SIGIL_REGISTRY__ = Symbol.for('@vicin/sigil.__SIGIL_REGISTRY__');
