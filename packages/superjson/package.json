@@ -43,6 +43,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@vicin/sigil": "workspace:*",
     "benchmark": "^2.1.4",
     "copy-anything": "^4"
   },
