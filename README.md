@@ -22,13 +22,6 @@ Powerful, lightweight TypeScript library for nominal typing.
 - npm: [@vicin/phantom](https://www.npmjs.com/package/@vicin/phantom)
 - github: [@vicin/phantom](https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/phantom)
 
-### Superjson
-
-Fork of [superjson](https://github.com/flightcontrolhq/superjson) still under development
-
-- npm: [@vicin/superjson](https://www.npmjs.com/package/@vicin/superjson)
-- github: [@vicin/superjson](https://github.com/ZiadTaha62/vicin-packages/tree/main/packages/superjson)
-
 ### DDD-core
 
 Still under development

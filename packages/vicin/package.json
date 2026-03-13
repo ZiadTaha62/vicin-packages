@@ -40,10 +40,9 @@
     }
   ],
   "dependencies": {
-    "@vicin/sigil": "workspace:*",
+    "@vicin/ddd-core": "workspace:*",
     "@vicin/phantom": "workspace:*",
-    "@vicin/superjson": "workspace:*",
-    "@vicin/ddd-core": "workspace:*"
+    "@vicin/sigil": "workspace:*"
   },
   "repository": {
     "type": "git",
