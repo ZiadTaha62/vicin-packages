@@ -1,5 +1,11 @@
 # @vicin/sigil
 
+## 4.0.2
+
+### Patch Changes
+
+- a7a5314: fix: type of passed class to 'Sigilify' and 'SigilifyAbstract' is now propegated properly
+
 ## 4.0.1
 
 ### Patch Changes

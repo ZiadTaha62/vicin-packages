@@ -1,5 +1,12 @@
 # @vicin/ddd-core
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [a7a5314]
+  - @vicin/sigil@4.0.2
+
 ## 1.0.2
 
 ### Patch Changes
