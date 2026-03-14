@@ -3,13 +3,15 @@ import { sigilify, hasOwnSigil } from './sigilify';
 import type { SigilOptions } from './options';
 import { __LABEL__, __SIGIL__, __SIGIL_LINEAGE__, __DEPTH__ } from './symbols';
 import type { Constructor, ConstructorAbstract, GetPrototype, sigil, ExtendSigil } from './types';
+import type { Sigil } from './classes';
 
 /**
  * Helper function to extend Base class with Sigil Class that should be present at the start of each Sigil chain
  * @param Base - The base constructor to extend.
  * @returns Base Sigil class at the start of each Sigil chain
  */
-export function BaseSigilify(Base: ConstructorAbstract) {
+export function BaseSigilify<B extends ConstructorAbstract>(Base: B) {
+  // @ts-expect-error Abstract definition will be used in SigilifyAbstract
   class Sigil extends Base {
     /**
      * Class-level identity label constant for this sigil constructor.
@@ -148,7 +150,11 @@ export function BaseSigilify(Base: ConstructorAbstract) {
  * @returns A new constructor that extends `Base` and includes Sigil statics/instance methods.
  * @throws Error if `Base` is already sigilified.
  */
-export function Sigilify<L extends string>(Base: Constructor, label: L, opts?: SigilOptions) {
+export function Sigilify<B extends Constructor, L extends string>(
+  Base: B,
+  label: L,
+  opts?: SigilOptions
+) {
   if (isSigilCtor(Base))
     throw new Error(
       `[Sigil Error] Class '${Base.name}' with label '${Base.SigilLabel}' is already sigilified`
@@ -156,7 +162,7 @@ export function Sigilify<L extends string>(Base: Constructor, label: L, opts?: S
 
   const BaseSigil = BaseSigilify(Base);
   class Sigilified extends BaseSigil {
-    declare [sigil]: ExtendSigil<L, InstanceType<typeof BaseSigil>>;
+    declare [sigil]: ExtendSigil<L, Sigil>;
   }
 
   sigilify(Sigilified, label, opts);
@@ -172,8 +178,8 @@ export function Sigilify<L extends string>(Base: Constructor, label: L, opts?: S
  * @returns A new abstract constructor that extends `Base` and includes Sigil statics/instance methods.
  * @throws Error if `Base` is already sigilified.
  */
-export function SigilifyAbstract<L extends string>(
-  Base: ConstructorAbstract,
+export function SigilifyAbstract<B extends ConstructorAbstract, L extends string>(
+  Base: B,
   label: L,
   opts?: SigilOptions
 ) {
@@ -184,7 +190,7 @@ export function SigilifyAbstract<L extends string>(
 
   const BaseSigil = BaseSigilify(Base);
   abstract class Sigilified extends BaseSigil {
-    declare [sigil]: ExtendSigil<L, InstanceType<typeof BaseSigil>>;
+    declare [sigil]: ExtendSigil<L, Sigil>;
   }
 
   sigilify(Sigilified, label, opts);
