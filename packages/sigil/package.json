@@ -1,6 +1,6 @@
 {
   "name": "@vicin/sigil",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Sigil, bulletproof class identity for large TypeScript projects",
   "license": "MIT",
   "author": "Ziad ziadtaha62@gmail.com",
