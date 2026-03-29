@@ -1,0 +1,412 @@
+import {
+  isBigint,
+  isDate,
+  isInfinite,
+  isMap,
+  isNaNValue,
+  isRegExp,
+  isSet,
+  isUndefined,
+  isSymbol,
+  isArray,
+  isError,
+  isTypedArray,
+  type TypedArrayConstructor,
+  isURL,
+} from './is.js';
+import { findArr } from './util.js';
+import SuperJSON from './index.js';
+
+export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
+
+type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'URL';
+
+type TypedArrayAnnotation = ['typed-array', string];
+type ClassTypeAnnotation = ['class', string];
+type SymbolTypeAnnotation = ['symbol', string];
+type CustomTypeAnnotation = ['custom', string];
+
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error';
+
+type CompositeTypeAnnotation =
+  | TypedArrayAnnotation
+  | ClassTypeAnnotation
+  | SymbolTypeAnnotation
+  | CustomTypeAnnotation;
+
+export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
+
+function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
+  isApplicable: (v: any, superJson: SuperJSON) => v is I,
+  annotation: A,
+  transform: (v: I, superJson: SuperJSON) => O,
+  untransform: (v: O, superJson: SuperJSON) => I,
+  isDeep: boolean
+) {
+  return {
+    isApplicable,
+    annotation,
+    transform,
+    untransform,
+    isDeep,
+  };
+}
+
+const simpleRules = [
+  simpleTransformation(
+    isUndefined,
+    'undefined',
+    () => null,
+    () => undefined,
+    false
+  ),
+  simpleTransformation(
+    isBigint,
+    'bigint',
+    (v) => v.toString(),
+    (v) => {
+      if (typeof BigInt !== 'undefined') {
+        return BigInt(v);
+      }
+
+      // eslint-disable-next-line
+      console.error('Please add a BigInt polyfill.');
+
+      return v as any;
+    },
+    false
+  ),
+  simpleTransformation(
+    isDate,
+    'Date',
+    (v) => v.toISOString(),
+    (v) => new Date(v),
+    false
+  ),
+
+  simpleTransformation(
+    isError,
+    'Error',
+    (v, superJson) => {
+      const baseError: any = {
+        name: v.name,
+        message: v.message,
+      };
+
+      if ('cause' in v) {
+        baseError.cause = v.cause;
+      }
+
+      superJson.allowedErrorProps.forEach((prop) => {
+        baseError[prop] = (v as any)[prop];
+      });
+
+      return baseError;
+    },
+    (v, superJson) => {
+      const e = new Error(v.message, { cause: v.cause });
+      e.name = v.name;
+      e.stack = v.stack;
+
+      superJson.allowedErrorProps.forEach((prop) => {
+        (e as any)[prop] = v[prop];
+      });
+
+      return e;
+    },
+    true
+  ),
+
+  simpleTransformation(
+    isRegExp,
+    'regexp',
+    (v) => '' + v,
+    (regex) => {
+      const body = regex.slice(1, regex.lastIndexOf('/'));
+      const flags = regex.slice(regex.lastIndexOf('/') + 1);
+      return new RegExp(body, flags);
+    },
+    false
+  ),
+
+  simpleTransformation(
+    isSet,
+    'set',
+    (v) => [...v.values()],
+    (v) => new Set(v),
+    true
+  ),
+  simpleTransformation(
+    isMap,
+    'map',
+    (v) => [...v.entries()],
+    (v) => new Map(v),
+    true
+  ),
+
+  simpleTransformation<number, 'NaN' | 'Infinity' | '-Infinity', 'number'>(
+    (v): v is number => isNaNValue(v) || isInfinite(v),
+    'number',
+    (v) => {
+      if (isNaNValue(v)) {
+        return 'NaN';
+      }
+
+      if (v > 0) {
+        return 'Infinity';
+      } else {
+        return '-Infinity';
+      }
+    },
+    Number,
+    false
+  ),
+
+  simpleTransformation<number, '-0', 'number'>(
+    (v): v is number => v === 0 && 1 / v === -Infinity,
+    'number',
+    () => {
+      return '-0';
+    },
+    Number,
+    false
+  ),
+
+  simpleTransformation(
+    isURL,
+    'URL',
+    (v) => v.toString(),
+    (v) => new URL(v),
+    false
+  ),
+];
+
+function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(
+  isApplicable: (v: any, superJson: SuperJSON) => v is I,
+  annotation: (v: I, superJson: SuperJSON) => A,
+  transform: (v: I, superJson: SuperJSON) => O,
+  untransform: (v: O, a: A, superJson: SuperJSON) => I,
+  isDeep: (v: I, superJson: SuperJSON) => boolean
+) {
+  return {
+    isApplicable,
+    annotation,
+    transform,
+    untransform,
+    isDeep,
+  };
+}
+
+const symbolRule = compositeTransformation(
+  (s, superJson): s is symbol => {
+    if (isSymbol(s)) {
+      const isRegistered = !!superJson.symbolRegistry.getIdentifier(s);
+      return isRegistered;
+    }
+    return false;
+  },
+  (s, superJson) => {
+    const identifier = superJson.symbolRegistry.getIdentifier(s);
+    return ['symbol', identifier!];
+  },
+  (v) => v.description,
+  (_, a, superJson) => {
+    const value = superJson.symbolRegistry.getValue(a[1]);
+    if (!value) {
+      throw new Error('Trying to deserialize unknown symbol');
+    }
+    return value;
+  },
+  () => false
+);
+
+const constructorToName = [
+  Int8Array,
+  Uint8Array,
+  Int16Array,
+  Uint16Array,
+  Int32Array,
+  Uint32Array,
+  Float32Array,
+  Float64Array,
+  Uint8ClampedArray,
+].reduce<Record<string, TypedArrayConstructor>>((obj, ctor) => {
+  obj[ctor.name] = ctor;
+  return obj;
+}, {});
+
+const typedArrayRule = compositeTransformation(
+  isTypedArray,
+  (v) => ['typed-array', v.constructor.name],
+  (v) =>
+    [...v].map((n) => {
+      // Handle special float values that JSON.stringify converts to null
+      if (typeof n === 'number') {
+        if (Number.isNaN(n)) return 'NaN';
+        if (n === Infinity) return 'Infinity';
+        if (n === -Infinity) return '-Infinity';
+      }
+      return n;
+    }),
+  (v, a) => {
+    const ctor = constructorToName[a[1]];
+
+    if (!ctor) {
+      throw new Error('Trying to deserialize unknown typed array');
+    }
+
+    // Convert string representations back to special float values
+    const values = v.map((n: number | string): number => {
+      if (n === 'NaN') return NaN;
+      if (n === 'Infinity') return Infinity;
+      if (n === '-Infinity') return -Infinity;
+      return n as number;
+    });
+
+    return new ctor(values as number[]);
+  },
+  () => false
+);
+
+export function isInstanceOfRegisteredClass(
+  potentialClass: any,
+  superJson: SuperJSON
+): potentialClass is any {
+  if (potentialClass?.constructor) {
+    const isRegistered = !!superJson.classRegistry.getIdentifier(potentialClass.constructor);
+    return isRegistered;
+  }
+  return false;
+}
+
+const classRule = compositeTransformation(
+  isInstanceOfRegisteredClass,
+  (clazz, superJson) => {
+    const identifier = superJson.classRegistry.getIdentifier(clazz.constructor);
+    return ['class', identifier!];
+  },
+  (clazz, superJson) => {
+    const allowedProps = superJson.classRegistry.getAllowedProps(clazz.constructor);
+    if (allowedProps) {
+      const result: any = {};
+      allowedProps.forEach((prop) => {
+        result[prop] = clazz[prop];
+      });
+      return result;
+    }
+
+    const custom = superJson.classRegistry.getCustom(clazz.constructor);
+    if (custom) {
+      return custom.serialize(clazz);
+    }
+
+    return { ...clazz };
+  },
+  (v, a, superJson) => {
+    const clazz = superJson.classRegistry.getValue(a[1]);
+
+    if (!clazz) {
+      throw new Error(
+        `Trying to deserialize unknown class '${a[1]}' - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`
+      );
+    }
+
+    const custom = superJson.classRegistry.getCustom(clazz);
+    if (custom) {
+      return custom.deserialize(v);
+    }
+
+    return Object.assign(Object.create(clazz.prototype), v);
+  },
+  (v, superJson) => {
+    const custom = superJson.classRegistry.getCustom(v);
+    if (custom) {
+      return !!custom.recursive;
+    }
+    return true;
+  }
+);
+
+const customRule = compositeTransformation(
+  (value, superJson): value is any => {
+    return !!superJson.customTransformerRegistry.findApplicable(value);
+  },
+  (value, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findApplicable(value)!;
+    return ['custom', transformer.name];
+  },
+  (value, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findApplicable(value)!;
+    return transformer.serialize(value);
+  },
+  (v, a, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findByName(a[1]);
+    if (!transformer) {
+      throw new Error('Trying to deserialize unknown custom value');
+    }
+    return transformer.deserialize(v);
+  },
+  (value, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findApplicable(value)!;
+    return !!transformer.recursive;
+  }
+);
+
+const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
+
+export const transformValue = (
+  value: any,
+  superJson: SuperJSON
+): { value: any; type: TypeAnnotation; isDeep: boolean } | undefined => {
+  const applicableCompositeRule = findArr(compositeRules, (rule) =>
+    rule.isApplicable(value, superJson)
+  );
+  if (applicableCompositeRule) {
+    return {
+      value: applicableCompositeRule.transform(value as never, superJson),
+      type: applicableCompositeRule.annotation(value, superJson),
+      isDeep: applicableCompositeRule.isDeep(value, superJson),
+    };
+  }
+
+  const applicableSimpleRule = findArr(simpleRules, (rule) => rule.isApplicable(value, superJson));
+
+  if (applicableSimpleRule) {
+    return {
+      value: applicableSimpleRule.transform(value as never, superJson),
+      type: applicableSimpleRule.annotation,
+      isDeep: applicableSimpleRule.isDeep,
+    };
+  }
+
+  return;
+};
+
+const simpleRulesByAnnotation: Record<string, (typeof simpleRules)[0]> = {};
+simpleRules.forEach((rule) => {
+  simpleRulesByAnnotation[rule.annotation] = rule;
+});
+
+export const untransformValue = (json: any, type: TypeAnnotation, superJson: SuperJSON) => {
+  if (isArray(type)) {
+    switch (type[0]) {
+      case 'symbol':
+        return symbolRule.untransform(json, type, superJson);
+      case 'class':
+        return classRule.untransform(json, type, superJson);
+      case 'custom':
+        return customRule.untransform(json, type, superJson);
+      case 'typed-array':
+        return typedArrayRule.untransform(json, type, superJson);
+      default:
+        throw new Error('Unknown transformation: ' + type);
+    }
+  } else {
+    const transformation = simpleRulesByAnnotation[type];
+    if (!transformation) {
+      throw new Error('Unknown transformation: ' + type);
+    }
+
+    return transformation.untransform(json as never, superJson);
+  }
+};
