@@ -1,5 +1,11 @@
 # @vicin/ddd-core
 
+## 1.0.5
+
+### Patch Changes
+
+- 1ef5727: refactor: removed meaningless specification decorator and function
+
 ## 1.0.4
 
 ### Patch Changes
