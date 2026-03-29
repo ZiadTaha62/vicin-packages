@@ -1,6 +1,4 @@
-import { Sigil, AttachSigil, type sigil, type ExtendSigil, stringify } from '../external';
-import { Specification } from '../markers';
-import { isRegistered } from '../registry';
+import { stringify } from '../external';
 
 /** ------------------------------
  *  Base
@@ -16,13 +14,7 @@ import { isRegistered } from '../registry';
  * @template T - Type of candidate being evaluated
  * @template Type - Discriminator of specification type
  */
-@AttachSigil('@vicin/ddd-core.Specification')
-export abstract class SpecificationBase<
-  T,
-  Type extends SpecificationType = SpecificationType,
-> extends Sigil {
-  declare [sigil]: ExtendSigil<'Specification', Sigil>;
-
+export abstract class SpecificationBase<T, Type extends SpecificationType = SpecificationType> {
   get [Symbol.toStringTag]() {
     return 'DomainSpecification';
   }
@@ -77,7 +69,7 @@ export abstract class SpecificationBase<
   /**
    * Serializes the specification into a string
    */
-  override toString(): string {
+  toString(): string {
     return stringify(this.toJSON());
   }
 }
@@ -93,10 +85,7 @@ export abstract class SpecificationBase<
  *
  * @template T - Type of candidate being evaluated
  */
-@Specification('@vicin/ddd-core.PredicateSpecification')
 export class PredicateSpecification<T> extends SpecificationBase<T, 'Predicate'> {
-  declare [sigil]: ExtendSigil<'PredicateSpecification', SpecificationBase<T>>;
-
   static override type: 'Predicate' = 'Predicate';
 
   /**
@@ -108,11 +97,6 @@ export class PredicateSpecification<T> extends SpecificationBase<T, 'Predicate'>
     private readonly name: string
   ) {
     super();
-    if (!isRegistered(this)) {
-      throw new Error(
-        `[DDD-core Error] Class ${(this as any).constructor.name} is not registered, must use one of the decorators (ValueObject, Entity, AggregateRoot, Event, etc...)`
-      );
-    }
   }
 
   isSatisfiedBy(candidate: T): boolean {
@@ -133,10 +117,7 @@ export class PredicateSpecification<T> extends SpecificationBase<T, 'Predicate'>
  *
  * @template T - Type of candidate being evaluated
  */
-@Specification('@vicin/ddd-core.AndSpecification')
 export class AndSpecification<T> extends SpecificationBase<T, 'And'> {
-  declare [sigil]: ExtendSigil<'AndSpecification', SpecificationBase<T>>;
-
   static override type: 'And' = 'And';
 
   constructor(
@@ -168,10 +149,7 @@ export class AndSpecification<T> extends SpecificationBase<T, 'And'> {
  *
  * @template T - Type of candidate being evaluated
  */
-@Specification('@vicin/ddd-core.OrSpecification')
 export class OrSpecification<T> extends SpecificationBase<T, 'Or'> {
-  declare [sigil]: ExtendSigil<'OrSpecification', SpecificationBase<T>>;
-
   static override type: 'Or' = 'Or';
 
   constructor(
@@ -203,10 +181,7 @@ export class OrSpecification<T> extends SpecificationBase<T, 'Or'> {
  *
  * @template T - Type of candidate being evaluated
  */
-@Specification('@vicin/ddd-core.NotSpecification')
 export class NotSpecification<T> extends SpecificationBase<T, 'Not'> {
-  declare [sigil]: ExtendSigil<'NotSpecification', SpecificationBase<T>>;
-
   static override type: 'Not' = 'Not';
 
   constructor(private readonly spec: SpecificationBase<T>) {

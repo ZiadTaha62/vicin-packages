@@ -29,8 +29,6 @@ export {
   collection,
   Event,
   event,
-  Specification,
-  specification,
 } from './markers';
 
 export {

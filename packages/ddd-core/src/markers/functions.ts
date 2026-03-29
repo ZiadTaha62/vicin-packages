@@ -109,23 +109,3 @@ export function collection<L extends string>(clazz: any, label: L, opts?: SigilO
   attachSigil(clazz, label, opts);
   register(clazz as any, 'Collection', true);
 }
-
-/**
- * Marks a class as a Specification.
- *
- * Attaches a sigil label and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function specification<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!SpecificationBase.isInstance(clazz.prototype)) {
-    throw new Error(
-      "[DDD-core Error] 'specification' function can only be used on domain specifications"
-    );
-  }
-
-  attachSigil(clazz, label, opts);
-  register(clazz as any, 'Specification', false);
-}
