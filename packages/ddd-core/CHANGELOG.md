@@ -1,5 +1,11 @@
 # @vicin/ddd-core
 
+## 1.0.4
+
+### Patch Changes
+
+- 06177ce: Initial stable version
+
 ## 1.0.3
 
 ### Patch Changes
