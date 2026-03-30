@@ -1,6 +1,48 @@
-import { DomainObject } from '../object';
-import { AttachSigil, type sigil, type ExtendSigil } from '../../../external';
+import { DomainObject } from '../base';
+import { register, type sigil, type ExtendSigil, type SigilOptions } from '../../../utils';
 import { ValueObjectBase, EntityBase, AggregateRootBase } from '../elements';
+
+/**
+ * Marks a class as a Domain collection.
+ *
+ * Attaches a sigil label, register class for cloning and serialization
+ * and registers the class in the DDD registry.
+ *
+ * @param clazz - Class constructor
+ * @param label - Unique identifier label
+ * @param opts - Optional sigil configuration
+ */
+export function DomainCollection<L extends string>(label: L, opts?: SigilOptions) {
+  return function (target: any, context: any) {
+    if (!DomainCollectionBase.isInstance(target.prototype)) {
+      throw new Error(
+        "[DDD-core Error] 'Collection' decorator can only be used on domain collections"
+      );
+    }
+
+    register(target as any, 'Collection', label, { ...opts, isDomainObject: true });
+  };
+}
+
+/**
+ * Marks a class as a Domain collection.
+ *
+ * Attaches a sigil label, register class for cloning and serialization
+ * and registers the class in the DDD registry.
+ *
+ * @param clazz - Class constructor
+ * @param label - Unique identifier label
+ * @param opts - Optional sigil configuration
+ */
+export function domainCollection<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
+  if (!DomainCollectionBase.isInstance(clazz.prototype)) {
+    throw new Error(
+      "[DDD-core Error] 'collection' function can only be used on domain collections"
+    );
+  }
+
+  register(clazz as any, 'Collection', label, { ...opts, isDomainObject: true });
+}
 
 /**
  * Base class for domain collection objects.
@@ -10,7 +52,7 @@ import { ValueObjectBase, EntityBase, AggregateRootBase } from '../elements';
  *
  * @template State - Internal state representation of the collection
  */
-@AttachSigil('@vicin/ddd-core.DomainCollection')
+@DomainCollection('@vicin/ddd-core.DomainCollection')
 export abstract class DomainCollectionBase<State> extends DomainObject<'Collection', State> {
   declare [sigil]: ExtendSigil<'DomainCollection', DomainObject<any, any>>;
 

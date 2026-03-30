@@ -1,9 +1,8 @@
-import { AttachSigil, type sigil, type ExtendSigil, isEqual } from '../../../external';
-import { DomainCollectionBase, toKey } from './collection';
-import { Collection } from '../../../markers';
-import type { DomainObject, StateOf } from '../object';
+import { type sigil, type ExtendSigil, isEqual } from '../../../utils';
+import type { DomainObject, StateOf } from '../base';
+import { DomainCollectionBase, toKey, DomainCollection } from './collection';
 
-@AttachSigil('@vicin/ddd-core.SharedDomainMap')
+@DomainCollection('@vicin/ddd-core.SharedDomainMap')
 abstract class SharedDomainMap<K, V> extends DomainCollectionBase<[K, V][]> {
   declare [sigil]: ExtendSigil<'SharedDomainMap', DomainCollectionBase<any>>;
 
@@ -45,8 +44,8 @@ abstract class SharedDomainMap<K, V> extends DomainCollectionBase<[K, V][]> {
     for (const [k, v] of this.map.values()) yield [k, v];
   }
 
-  forEach(fn: (value: V, key: K) => void): void {
-    for (const [k, v] of this) fn(v, k);
+  forEach(fn: (value: V, key: K, map: this) => void): void {
+    for (const [k, v] of this) fn(v, k, this);
   }
 
   isEmpty(): boolean {
@@ -71,21 +70,68 @@ abstract class SharedDomainMap<K, V> extends DomainCollectionBase<[K, V][]> {
     return true;
   }
 
-  getState() {
+  getState(): [K, V][] {
     return [...this];
+  }
+
+  unwrap(): Map<K, V> {
+    return new Map<K, V>([...this]);
   }
 }
 
 /**
- * Immutable domain map.
+ * Readonly domain map, Readonly without write methods
+ *
+ * Provides value-based semantics over a Map:
+ * - Keys are normalized using domain rules
+ */
+@DomainCollection('@vicin/ddd-core.ReadOnlyDomainMap')
+export class ReadOnlyDomainMap<K, V> extends SharedDomainMap<K, V> {
+  declare [sigil]: ExtendSigil<'ReadOnlyDomainMap', SharedDomainMap<any, any>>;
+
+  override get [Symbol.toStringTag]() {
+    return 'ReadOnlyDomainMap';
+  }
+
+  /**
+   * Creates a DomainMap from a native Map or array of entries.
+   *
+   * @param value - Initial entries
+   */
+  static from<K, V>(value: Map<K, V> | [K, V][]): ReadOnlyDomainMap<K, V> {
+    return new ReadOnlyDomainMap(value);
+  }
+
+  /**
+   * Merge multiple domain or native maps or entiries into ReadOnlyDomainMap
+   *
+   * @param maps - Maps to merge
+   */
+  static merge<K, V>(
+    maps: (
+      | DomainMap<K, V>
+      | MutableDomainMap<K, V>
+      | ReadOnlyDomainMap<K, V>
+      | Map<K, V>
+      | [K, V][]
+    )[]
+  ): ReadOnlyDomainMap<K, V> {
+    const total: [K, V][] = [];
+    for (const m of maps) total.push(...m);
+    return new ReadOnlyDomainMap(total);
+  }
+}
+
+/**
+ * Immutable domain map
  *
  * Provides value-based semantics over a Map:
  * - Setting a value returns a new instance
  * - Keys are normalized using domain rules
  */
-@Collection('@vicin/ddd-core.DomainMap')
+@DomainCollection('@vicin/ddd-core.DomainMap')
 export class DomainMap<K, V> extends SharedDomainMap<K, V> {
-  declare [sigil]: ExtendSigil<'DomainMap', SharedDomainMap<K, V>>;
+  declare [sigil]: ExtendSigil<'DomainMap', SharedDomainMap<any, any>>;
 
   override get [Symbol.toStringTag]() {
     return 'DomainMap';
@@ -101,12 +147,18 @@ export class DomainMap<K, V> extends SharedDomainMap<K, V> {
   }
 
   /**
-   * Merge multiple domain or native maps or entiries
+   * Merge multiple domain or native maps or entiries into DomainMap
    *
    * @param maps - Maps to merge
    */
   static merge<K, V>(
-    maps: (DomainMap<K, V> | MutableDomainMap<K, V> | Map<K, V> | [K, V][])[]
+    maps: (
+      | DomainMap<K, V>
+      | MutableDomainMap<K, V>
+      | ReadOnlyDomainMap<K, V>
+      | Map<K, V>
+      | [K, V][]
+    )[]
   ): DomainMap<K, V> {
     const total: [K, V][] = [];
     for (const m of maps) total.push(...m);
@@ -144,9 +196,9 @@ export class DomainMap<K, V> extends SharedDomainMap<K, V> {
  * - Mutates internal state directly
  * - Returns `this` for chaining
  */
-@Collection('@vicin/ddd-core.MutableDomainMap')
+@DomainCollection('@vicin/ddd-core.MutableDomainMap')
 export class MutableDomainMap<K, V> extends SharedDomainMap<K, V> {
-  declare [sigil]: ExtendSigil<'MutableDomainMap', SharedDomainMap<K, V>>;
+  declare [sigil]: ExtendSigil<'MutableDomainMap', SharedDomainMap<any, any>>;
 
   override get [Symbol.toStringTag]() {
     return 'MutableDomainMap';
@@ -162,12 +214,18 @@ export class MutableDomainMap<K, V> extends SharedDomainMap<K, V> {
   }
 
   /**
-   * Merge multiple domain or native maps or entiries
+   * Merge multiple domain or native maps or entiries into MutableDomainMap
    *
    * @param maps - Maps to merge
    */
   static merge<K, V>(
-    maps: (DomainMap<K, V> | MutableDomainMap<K, V> | Map<K, V> | [K, V][])[]
+    maps: (
+      | DomainMap<K, V>
+      | MutableDomainMap<K, V>
+      | ReadOnlyDomainMap<K, V>
+      | Map<K, V>
+      | [K, V][]
+    )[]
   ): MutableDomainMap<K, V> {
     const total: [K, V][] = [];
     for (const m of maps) total.push(...m);

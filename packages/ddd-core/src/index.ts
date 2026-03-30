@@ -1,35 +1,5 @@
-export {
-  ValueObjectBase,
-  EntityBase,
-  AggregateRootBase,
-  DomainCollectionBase,
-  DomainMap,
-  MutableDomainMap,
-  DomainSet,
-  MutableDomainSet,
-  DomainEventBase,
-  SpecificationBase,
-  PredicateSpecification,
-  AndSpecification,
-  OrSpecification,
-  NotSpecification,
-  spec,
-  invariant,
-  ensure,
-} from './core';
-
-export {
-  ValueObject,
-  valueObject,
-  Entity,
-  entity,
-  AggregateRoot,
-  aggregateRoot,
-  Collection,
-  collection,
-  Event,
-  event,
-} from './markers';
+export * from './domain';
+export * from './application';
 
 export {
   // sigil
@@ -37,7 +7,6 @@ export {
   type sigil,
   type ExtendSigil,
   SIGIL_RECOMMENDED_LABEL_REGEX,
-  Sigil,
 
   // serialize
   serializer,
@@ -57,4 +26,4 @@ export {
 
   // equal
   isEqual,
-} from './external';
+} from './utils';

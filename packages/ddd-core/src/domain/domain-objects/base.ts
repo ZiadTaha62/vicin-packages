@@ -1,6 +1,14 @@
-import { Sigil, AttachSigil, type sigil, type ExtendSigil } from '@vicin/sigil';
-import { serializer, type JSONValue, clone, stringify, isEqual } from '../../external';
-import { isRegistered } from '../../registry';
+import { DddCore } from '../../ddd-core';
+import {
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+  serializer,
+  type JSONValue,
+  clone,
+  stringify,
+  isEqual,
+} from '../../utils';
 
 export type DomainObjectType = 'ValueObject' | 'Entity' | 'AggregateRoot' | 'Event' | 'Collection';
 
@@ -29,8 +37,8 @@ export type StateOf<D extends DomainObject<any, any>> =
  * @template State - Internal persisted state
  */
 @AttachSigil('@vicin/lib-core.DomainObject')
-export abstract class DomainObject<Type extends DomainObjectType, State> extends Sigil {
-  declare [sigil]: ExtendSigil<'DomainObject', Sigil>;
+export abstract class DomainObject<Type extends DomainObjectType, State> extends DddCore {
+  declare [sigil]: ExtendSigil<'DomainObject', DddCore>;
 
   get [Symbol.toStringTag]() {
     return 'DomainObject';
@@ -39,15 +47,6 @@ export abstract class DomainObject<Type extends DomainObjectType, State> extends
   static readonly type: DomainObjectType;
   get type(): Type {
     return (this.constructor as typeof DomainObject).type as Type;
-  }
-
-  constructor() {
-    super();
-    if (!isRegistered(this)) {
-      throw new Error(
-        `[DDD-core Error] Class ${(this as any).constructor.name} is not registered, must use one of the decorators (ValueObject, Entity, AggregateRoot, Event, etc...)`
-      );
-    }
   }
 
   /**

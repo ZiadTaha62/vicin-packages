@@ -6,8 +6,10 @@ export const SIGIL_RECOMMENDED_LABEL_REGEX = RECOMMENDED_LABEL_REGEX;
 export {
   updateSigilOptions,
   Sigil,
+  SigilError,
   AttachSigil,
   attachSigil,
   type sigil,
   type ExtendSigil,
+  type SigilOptions,
 } from '@vicin/sigil';

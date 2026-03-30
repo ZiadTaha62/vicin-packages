@@ -1,9 +1,8 @@
-import { AttachSigil, type sigil, type ExtendSigil, isEqual } from '../../../external';
-import type { DomainObject, StateOf } from '../object';
-import { DomainCollectionBase, toKey } from './collection';
-import { Collection } from '../../../markers';
+import { type sigil, type ExtendSigil, isEqual } from '../../../utils';
+import type { DomainObject, StateOf } from '../base';
+import { DomainCollectionBase, toKey, DomainCollection } from './collection';
 
-@AttachSigil('@vicin/ddd-core.SharedDomainSet')
+@DomainCollection('@vicin/ddd-core.SharedDomainSet')
 abstract class SharedDomainSet<V> extends DomainCollectionBase<V[]> {
   declare [sigil]: ExtendSigil<'SharedDomainSet', DomainCollectionBase<any>>;
 
@@ -45,8 +44,8 @@ abstract class SharedDomainSet<V> extends DomainCollectionBase<V[]> {
     for (const v of this.map.values()) yield [v, v];
   }
 
-  forEach(fn: (value1: V, value2: V) => void): void {
-    for (const v of this) fn(v, v);
+  forEach(fn: (value1: V, value2: V, set: this) => void): void {
+    for (const v of this) fn(v, v, this);
   }
 
   isEmpty(): boolean {
@@ -74,6 +73,47 @@ abstract class SharedDomainSet<V> extends DomainCollectionBase<V[]> {
   getState(): V[] {
     return [...this];
   }
+
+  unwrap(): Set<V> {
+    return new Set<V>([...this]);
+  }
+}
+
+/**
+ * Readonly domain set, read only without write methods
+ *
+ * Provides value-based semantics over a Set:
+ * - Values are normalized using domain rules
+ */
+@DomainCollection('@vicin/ddd-core.ReadOnlyDomainSet')
+export class ReadOnlyDomainSet<V> extends SharedDomainSet<V> {
+  declare [sigil]: ExtendSigil<'ReadOnlyDomainSet', SharedDomainSet<any>>;
+
+  override get [Symbol.toStringTag]() {
+    return 'ReadOnlyDomainSet';
+  }
+
+  /**
+   * Creates a ReadOnlyDomainSet from a native Set or array.
+   *
+   * @param value - Initial array
+   */
+  static from<V>(value: Set<V> | V[]): ReadOnlyDomainSet<V> {
+    return new ReadOnlyDomainSet(value);
+  }
+
+  /**
+   * Merge multiple domain or native sets or arrays into ReadOnlyDomainSet
+   *
+   * @param maps - Maps to merge
+   */
+  static merge<V>(
+    sets: (DomainSet<V> | MutableDomainSet<V> | ReadOnlyDomainSet<V> | Set<V> | V[])[]
+  ): ReadOnlyDomainSet<V> {
+    const total: V[] = [];
+    for (const s of sets) total.push(...s);
+    return new ReadOnlyDomainSet(total);
+  }
 }
 
 /**
@@ -83,9 +123,9 @@ abstract class SharedDomainSet<V> extends DomainCollectionBase<V[]> {
  * - Adding/removing values returns a new instance
  * - Values are normalized using domain rules
  */
-@Collection('@vicin/ddd-core.DomainSet')
+@DomainCollection('@vicin/ddd-core.DomainSet')
 export class DomainSet<V> extends SharedDomainSet<V> {
-  declare [sigil]: ExtendSigil<'DomainSet', SharedDomainSet<V>>;
+  declare [sigil]: ExtendSigil<'DomainSet', SharedDomainSet<any>>;
 
   override get [Symbol.toStringTag]() {
     return 'DomainSet';
@@ -101,11 +141,13 @@ export class DomainSet<V> extends SharedDomainSet<V> {
   }
 
   /**
-   * Merge multiple domain or native sets or arrays
+   * Merge multiple domain or native sets or arrays into DomainSet
    *
    * @param maps - Maps to merge
    */
-  static merge<V>(sets: (DomainSet<V> | MutableDomainSet<V> | Set<V> | V[])[]): DomainSet<V> {
+  static merge<V>(
+    sets: (DomainSet<V> | MutableDomainSet<V> | ReadOnlyDomainSet<V> | Set<V> | V[])[]
+  ): DomainSet<V> {
     const total: V[] = [];
     for (const s of sets) total.push(...s);
     return new DomainSet(total);
@@ -135,9 +177,9 @@ export class DomainSet<V> extends SharedDomainSet<V> {
   }
 }
 
-@Collection('@vicin/ddd-core.MutableDomainSet')
+@DomainCollection('@vicin/ddd-core.MutableDomainSet')
 export class MutableDomainSet<V> extends SharedDomainSet<V> {
-  declare [sigil]: ExtendSigil<'MutableDomainSet', SharedDomainSet<V>>;
+  declare [sigil]: ExtendSigil<'MutableDomainSet', SharedDomainSet<any>>;
 
   override get [Symbol.toStringTag]() {
     return 'MutableDomainSet';
@@ -153,11 +195,13 @@ export class MutableDomainSet<V> extends SharedDomainSet<V> {
   }
 
   /**
-   * Merge multiple domain or native sets or arrays
+   * Merge multiple domain or native sets or arrays into MutableDomainSet
    *
    * @param maps - Maps to merge
    */
-  static merge<V>(sets: (DomainSet<V> | MutableDomainSet<V>)[]): MutableDomainSet<V> {
+  static merge<V>(
+    sets: (DomainSet<V> | MutableDomainSet<V> | ReadOnlyDomainSet<V> | Set<V> | V[])[]
+  ): MutableDomainSet<V> {
     const total: V[] = [];
     for (const s of sets) total.push(...s);
     return new MutableDomainSet(total);

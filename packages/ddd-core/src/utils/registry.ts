@@ -1,4 +1,4 @@
-import { serializer, registerCloneableClass } from './external';
+import { serializer, registerCloneableClass, attachSigil, type SigilOptions } from '.';
 
 interface Registry {
   set(clazz: any, type: string): void;
@@ -51,14 +51,21 @@ const registry = getRegistry();
  *
  * @throws Error if the class is already registered
  */
-export function register(clazz: any, type: string, isDomainObject: boolean) {
+export function register(
+  clazz: any,
+  type: string,
+  label: string,
+  opts?: SigilOptions & { isDomainObject?: boolean }
+) {
   if (registry.has(clazz)) {
     throw new Error(
       `[DDD-core Error] Class ${clazz.name} with label ${clazz.SigilLabel} is already registered`
     );
   }
 
-  if (isDomainObject) {
+  attachSigil(clazz, label, opts);
+
+  if (opts?.isDomainObject) {
     serializer.registerClass(clazz, {
       identifier: clazz.SigilLabel,
       custom: {

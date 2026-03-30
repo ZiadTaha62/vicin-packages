@@ -140,7 +140,7 @@ export namespace Status {
    * @param value The successful value.
    * @returns A successful Status object.
    */
-  export const ok = <T>(value: T) =>
+  export const success = <T>(value: T) =>
     ({
       status: true,
       value,
@@ -152,7 +152,7 @@ export namespace Status {
    * @param error The error value.
    * @returns A failed Status object.
    */
-  export const err = <E>(error: E) =>
+  export const failure = <E>(error: E) =>
     ({
       status: false,
       error,
