@@ -1,4 +1,4 @@
-import { isDomainObject } from './registry';
+import { isStateObject } from '../registry';
 
 /** Function used internally for equality, its a copy of 'fast-deep-equal' library but modified to call 'equals' method of domain objects */
 /**
@@ -16,8 +16,8 @@ export function isEqual(a: any, b: any): boolean {
   if (a === b) return true;
 
   if (a && b && typeof a == 'object' && typeof b == 'object') {
-    // Check for domain objects
-    if (isDomainObject(a)) return a.equals(b);
+    // Check for state objects
+    if (isStateObject(a)) return a.equals(b);
 
     if (a.constructor !== b.constructor) return false;
 

@@ -1,15 +1,18 @@
 export * from './domain';
 export * from './application';
+export * from './infra';
 
 export {
   // sigil
-  updateSigilOptions,
   type sigil,
   type ExtendSigil,
-  SIGIL_RECOMMENDED_LABEL_REGEX,
+  RECOMMENDED_LABEL_REGEX,
 
-  // serialize
-  serializer,
+  // json serializer
+  JSONSerializer,
+  type JSONValue,
+
+  // stringify
   stringify,
 
   // clone
@@ -27,3 +30,5 @@ export {
   // equal
   isEqual,
 } from './utils';
+
+export { updateOptions } from './options';

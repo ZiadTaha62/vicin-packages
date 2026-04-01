@@ -1,56 +1,14 @@
-import {
-  register,
-  type sigil,
-  type ExtendSigil,
-  type SigilOptions,
-  Result,
-  Status,
-} from '../utils';
-import { DddCore } from '../ddd-core';
+import { AttachSigil, type sigil, type ExtendSigil, Result, Status } from '../utils';
+import { markFactory, MarkFactory, MarkObjectFactory } from '../extended-classes';
 
-/**
- * Marks a class as a Domain service.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function DomainService<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!DomainServiceBase.isInstance(target.prototype)) {
-      throw new Error("[DDD-core Error] 'Service' decorator can only be used on domain services");
-    }
+const MarkObject = MarkObjectFactory('DomainService');
+type MarkObject = InstanceType<typeof MarkObject>;
 
-    register(target as any, 'Service', label, { ...opts, isDomainObject: false });
-  };
-}
+@AttachSigil('@vicin/ddd-core.DomainServiceBase')
+export abstract class DomainServiceBase extends MarkObject {
+  declare [sigil]: ExtendSigil<'DomainServiceBase', MarkObject>;
 
-/**
- * Marks a class as a Domain exception.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function domainService<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!DomainServiceBase.isInstance(clazz.prototype)) {
-    throw new Error("[DDD-core Error] 'service' function can only be used on domain services");
-  }
-
-  register(clazz as any, 'Service', label, { ...opts, isDomainObject: false });
-}
-
-@DomainService('@vicin/ddd-core.DomainServiceBase')
-export abstract class DomainServiceBase extends DddCore {
-  declare [sigil]: ExtendSigil<'DomainServiceBase', DddCore>;
-
-  get [Symbol.toStringTag]() {
+  override get [Symbol.toStringTag]() {
     return 'DomainService';
   }
 
@@ -62,3 +20,6 @@ export abstract class DomainServiceBase extends DddCore {
   protected success = Status.success;
   protected failure = Status.failure;
 }
+
+export const DomainService = MarkFactory(DomainServiceBase);
+export const domainService = markFactory(DomainServiceBase);

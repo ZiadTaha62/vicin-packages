@@ -5,7 +5,7 @@ import rfdc from 'rfdc';
  * ---------------------------- */
 
 type Constructor<T> = { new (...args: any[]): T };
-type ConstructorHandlerConfig<T = any> = [Constructor<T>, (o: T) => T];
+export type ConstructorHandlerConfig<T = any> = [Constructor<T>, (o: T) => T];
 
 const constructorHandlers: ConstructorHandlerConfig[] = [];
 
@@ -31,18 +31,6 @@ export const clone = rfdc({ circles: true, constructorHandlers });
  */
 export function registerConstructorHandler(handler: ConstructorHandlerConfig) {
   constructorHandlers.push(handler);
-}
-
-/**
- * Registers a class as cloneable using its `.clone()` method.
- *
- * This is used internally for domain objects so they preserve identity semantics.
- *
- * @param v - Class constructor implementing `.clone()`
- */
-export function registerCloneableClass(v: CloneableClass) {
-  const handler: ConstructorHandlerConfig<CloneableClassInstance> = [v, (inst) => inst.clone()];
-  registerConstructorHandler(handler);
 }
 
 /** ----------------------------

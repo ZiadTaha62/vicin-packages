@@ -1,59 +1,20 @@
-import { DddCore } from '../ddd-core';
 import { DomainList, AggregateRootBase } from '../domain';
-import { type EventPublisherBase } from './event-publisher';
-import { register, type sigil, type ExtendSigil, type SigilOptions } from '../utils';
+import type { EventPublisherI } from './event-publisher';
+import { AttachSigil, type sigil, type ExtendSigil } from '../utils';
+import { MarkObjectFactory, MarkFactory, markFactory } from '../extended-classes';
 
-/**
- * Marks a class as an Application serive.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function ApplicationService<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!ApplicationServiceBase.isInstance(target.prototype)) {
-      throw new Error(
-        "[DDD-core Error] 'ApplicationService' decorator can only be used on application serives"
-      );
-    }
+const MarkObject = MarkObjectFactory('ApplicationService');
+type MarkObject = InstanceType<typeof MarkObject>;
 
-    register(target as any, 'ApplicationService', label, { ...opts, isDomainObject: false });
-  };
-}
+@AttachSigil('@vicin/ddd-core.ApplicationServiceBase')
+export abstract class ApplicationServiceBase extends MarkObject {
+  declare [sigil]: ExtendSigil<'ApplicationServiceBase', MarkObject>;
 
-/**
- * Marks a class as an Application serive.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function applicationService<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!ApplicationServiceBase.isInstance(clazz.prototype)) {
-    throw new Error(
-      "[DDD-core Error] 'applicationService' function can only be used on application serives"
-    );
-  }
-
-  register(clazz as any, 'ApplicationService', label, { ...opts, isDomainObject: false });
-}
-
-@ApplicationService('@vicin/ddd-core.ApplicationServiceBase')
-export abstract class ApplicationServiceBase extends DddCore {
-  declare [sigil]: ExtendSigil<'ApplicationServiceBase', DddCore>;
-
-  get [Symbol.toStringTag]() {
+  override get [Symbol.toStringTag]() {
     return 'ApplicationService';
   }
 
-  constructor(protected readonly publisher: EventPublisherBase) {
+  constructor(protected readonly publisher: EventPublisherI) {
     super();
   }
 
@@ -71,3 +32,6 @@ export abstract class ApplicationServiceBase extends DddCore {
     await this.publishEvents(events);
   }
 }
+
+export const ApplicationService = MarkFactory(ApplicationServiceBase);
+export const applicationService = markFactory(ApplicationServiceBase);

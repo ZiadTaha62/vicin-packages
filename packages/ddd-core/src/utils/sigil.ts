@@ -1,15 +1,13 @@
-import { RECOMMENDED_LABEL_REGEX } from '@vicin/sigil';
-
-/** Label regex used by 'Sigil' library to validate passed labels */
-export const SIGIL_RECOMMENDED_LABEL_REGEX = RECOMMENDED_LABEL_REGEX;
-
 export {
   updateSigilOptions,
   Sigil,
   SigilError,
+  Sigilify,
   AttachSigil,
   attachSigil,
   type sigil,
   type ExtendSigil,
   type SigilOptions,
+  RECOMMENDED_LABEL_REGEX,
+  isSigilInstance,
 } from '@vicin/sigil';

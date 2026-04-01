@@ -43,12 +43,13 @@
   "size-limit": [
     {
       "path": "dist/index.js",
-      "limit": "15 KB"
+      "limit": "20 KB"
     }
   ],
   "dependencies": {
     "@vicin/sigil": "workspace:*",
     "@vicin/superjson": "workspace:*",
+    "nanoid": "^5.1.7",
     "neverthrow": "^8.2.0",
     "rfdc": "^1.4.1"
   },

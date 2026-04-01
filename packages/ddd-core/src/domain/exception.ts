@@ -1,76 +1,86 @@
-import { register, type sigil, type ExtendSigil, type SigilOptions } from '../utils';
-import { DddCoreError } from '../ddd-core';
+import { markFactory, MarkFactory } from '../extended-classes';
+import { AttachSigil, type sigil, type ExtendSigil } from '../utils';
+import { IdentityErrorObjectFactory } from '../extended-classes';
+import type { DddCoreErrorI } from '../ddd-core';
 
-/**
- * Marks a class as a Domain exception.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function Exception<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!DomainException.isInstance(target.prototype)) {
-      throw new Error(
-        "[DDD-core Error] 'Exception' decorator can only be used on domain exceptions"
-      );
-    }
+const IdentityObject = IdentityErrorObjectFactory('DomainException');
+type IdentityObject = InstanceType<typeof IdentityObject>;
 
-    register(target as any, 'Exception', label, { ...opts, isDomainObject: false });
-  };
-}
+@AttachSigil('@vicin/ddd-core.DomainExceptionBase')
+export class DomainExceptionBase extends IdentityObject {
+  declare [sigil]: ExtendSigil<'DomainExceptionBase', IdentityObject>;
 
-/**
- * Marks a class as a Domain exception.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function exception<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!DomainException.isInstance(clazz.prototype)) {
-    throw new Error("[DDD-core Error] 'exception' function can only be used on domain exceptions");
-  }
-
-  register(clazz as any, 'Exception', label, { ...opts, isDomainObject: true });
-}
-
-@Exception('@vicin/ddd-core.DomainException')
-export class DomainException<Type extends string> extends DddCoreError {
-  declare [sigil]: ExtendSigil<'DomainException', DddCoreError>;
-
-  get [Symbol.toStringTag]() {
+  override get [Symbol.toStringTag]() {
     return 'DomainException';
   }
 
-  readonly type: Type;
+  constructor(error: DddCoreErrorI) {
+    super(error);
+  }
 
-  constructor(type: Type, message?: string, options?: ErrorOptions) {
-    super(message, options);
-    this.type = type;
+  getState() {
+    return {
+      // dentity & Metadata
+      id: this.id,
+      traceId: this.traceId,
+      timestamp: this.timestamp,
+
+      // Classification
+      domain: this.domain,
+      type: this.type,
+      name: this.name,
+
+      // Codes & Status
+      status: this.status,
+      code: this.code,
+      subCode: this.subCode,
+
+      // Messages
+      message: this.message,
+      userMessage: this.userMessage,
+
+      // Operational Flags
+      isOperational: this.isOperational,
+      retryable: this.retryable,
+
+      // Context & Debugging
+      details: this.details,
+      context: this.context,
+      cause: this.cause,
+      stack: this.stack,
+    };
+  }
+
+  toId(): string {
+    return this.id;
   }
 }
 
-@Exception('@vicin/ddd-core.ValidationDomainException')
-export class ValidationDomainException extends DomainException<'Validation'> {
-  declare [sigil]: ExtendSigil<'ValidationDomainException', DomainException<any>>;
+export const DomainException = MarkFactory(DomainExceptionBase);
+export const domainException = markFactory(DomainExceptionBase);
 
-  constructor(message?: string, options?: ErrorOptions) {
-    super('Validation', message, options);
+@DomainException('@vicin/ddd-core.ValidationDomainException')
+export class ValidationDomainException extends DomainExceptionBase {
+  declare [sigil]: ExtendSigil<'ValidationDomainException', DomainExceptionBase>;
+
+  constructor(error: Omit<DddCoreErrorI, 'type'>) {
+    super({ ...error, type: 'Validation' });
   }
 }
 
-@Exception('@vicin/ddd-core.InvariantDomainException')
-export class InvariantDomainException extends DomainException<'Invariant'> {
-  declare [sigil]: ExtendSigil<'InvariantDomainException', DomainException<any>>;
+@DomainException('@vicin/ddd-core.InvariantViolationDomainException')
+export class InvariantViolationDomainException extends DomainExceptionBase {
+  declare [sigil]: ExtendSigil<'InvariantViolationDomainException', DomainExceptionBase>;
 
-  constructor(message?: string, options?: ErrorOptions) {
-    super('Invariant', message, options);
+  constructor(error: Omit<DddCoreErrorI, 'type'>) {
+    super({ ...error, type: 'InvariantViolation' });
   }
 }
+
+const error = new ValidationDomainException({
+  name: 'VicinError',
+  message: 'Invalid vicin passed',
+  code: 'INVALID_VICIN',
+});
+
+console.debug(error.toString());

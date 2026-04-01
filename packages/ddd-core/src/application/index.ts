@@ -1,11 +1,3 @@
-export {
-  EventPublisher,
-  eventPublisher,
-  EventPublisherBase,
-  InMemoryEventPublisher,
-  ConsoleEventPublisher,
-} from './event-publisher';
-
+export type { EventPublisherI } from './event-publisher';
+export type { OutboxI } from './outbox';
 export { ApplicationService, applicationService, ApplicationServiceBase } from './service';
-
-export { Outbox, outbox, OutboxBase } from './outbox';

@@ -1,51 +1,12 @@
-import { register, type sigil, type ExtendSigil, type SigilOptions, stringify } from '../utils';
-import { DddCore } from '../ddd-core';
-
-/**
- * Marks a class as a Domain specification.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function Specification<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!SpecificationBase.isInstance(target.prototype)) {
-      throw new Error(
-        "[DDD-core Error] 'Specification' decorator can only be used on domain specifications"
-      );
-    }
-
-    register(target as any, 'Specification', label, { ...opts, isDomainObject: false });
-  };
-}
-
-/**
- * Marks a class as a Domain specification.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function specification<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!SpecificationBase.isInstance(clazz.prototype)) {
-    throw new Error(
-      "[DDD-core Error] 'Specification' function can only be used on domain specifications"
-    );
-  }
-
-  register(clazz as any, 'Specification', label, { ...opts, isDomainObject: false });
-}
+import { AttachSigil, type sigil, type ExtendSigil, stringify } from '../utils';
+import { markFactory, MarkFactory, MarkObjectFactory } from '../extended-classes';
 
 /** ------------------------------
  *  Base
  * ------------------------------ */
+
+const MarkObject = MarkObjectFactory('Specification');
+type MarkObject = InstanceType<typeof MarkObject>;
 
 /**
  * Base class for domain specifications
@@ -57,11 +18,11 @@ export function specification<L extends string>(clazz: any, label: L, opts?: Sig
  * @template T - Type of candidate being evaluated
  * @template Type - Discriminator of specification type
  */
-@Specification('@vicin/ddd-core.SpecificationBase')
-export abstract class SpecificationBase<T, Type extends string = string> extends DddCore {
-  declare [sigil]: ExtendSigil<'SpecificationBase', DddCore>;
+@AttachSigil('@vicin/ddd-core.SpecificationBase')
+export abstract class SpecificationBase<T, Type extends string = string> extends MarkObject {
+  declare [sigil]: ExtendSigil<'SpecificationBase', MarkObject>;
 
-  get [Symbol.toStringTag]() {
+  override get [Symbol.toStringTag]() {
     return 'DomainSpecification';
   }
 
@@ -119,6 +80,9 @@ export abstract class SpecificationBase<T, Type extends string = string> extends
     return stringify(this.toJSON());
   }
 }
+
+export const Specification = MarkFactory(SpecificationBase);
+export const specification = markFactory(SpecificationBase);
 
 /** ------------------------------
  *  Predicate

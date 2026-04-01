@@ -1,87 +1,12 @@
-import { DomainObject } from '../base';
 import { DomainEventBase } from '../event';
-import {
-  register,
-  type sigil,
-  type ExtendSigil,
-  type SigilOptions,
-  type Result,
-  type Status,
-} from '../../../utils';
+import { AttachSigil, type sigil, type ExtendSigil, type Result, type Status } from '../../utils';
 import type { IdentityValueObjectBase } from './value-object';
-import type { DomainException } from '../../exception';
+import type { DomainExceptionBase } from '../exception';
 import { DomainList } from '../collections';
+import { IdentityObjectFactory, markFactory, MarkFactory } from '../../extended-classes';
 
-/**
- * Marks a class as an Aggeregate root.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function AggregateRoot<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!AggregateRootBase.isInstance(target.prototype)) {
-      throw new Error(
-        "[DDD-core Error] 'AggregateRoot' decorator can only be used on domain aggregate roots"
-      );
-    }
-
-    register(target as any, 'AggregateRoot', label, { ...opts, isDomainObject: true });
-  };
-}
-
-/**
- * Marks a class as an Aggeregate root.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function aggregateRoot<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!AggregateRootBase.isInstance(clazz.prototype)) {
-    throw new Error(
-      "[DDD-core Error] 'aggregateRoot' function can only be used on domain aggregate roots"
-    );
-  }
-
-  register(clazz as any, 'AggregateRoot', label, { ...opts, isDomainObject: true });
-}
-
-/**
- * Marks a method as an event handler for a specific domain event.
- * Used in EventSourced Aggregate Roots to register 'when' handlers.
- *
- * @param eventClass - The domain event class this method handles
- */
-export function When(eventClass: any) {
-  return function (target: any, context: ClassMethodDecoratorContext) {
-    if (!DomainEventBase.isInstance(eventClass.prototype)) {
-      throw new Error(`[DDD-core Error] Value passed to '@When' decorator must be domain event`);
-    }
-
-    if (context.kind !== 'method') {
-      throw new Error("[DDD-core Error] '@When' decorator can only be used on methods");
-    }
-
-    const aggregateClass = target.constructor as typeof AggregateRootBase;
-
-    const handlerName = context.name as string;
-    const handlerFn = target[handlerName] as DomainEventHandler;
-
-    if (typeof handlerFn !== 'function') {
-      throw new Error(`[DDD-core Error] '@When' was applied to non-method: ${handlerName}`);
-    }
-
-    aggregateClass.when(eventClass, handlerFn);
-  };
-}
+const IdentityObject = IdentityObjectFactory('AggregateRoot');
+type IdentityObject = InstanceType<typeof IdentityObject>;
 
 type AggregateRootState = {
   [k: string]: any;
@@ -93,18 +18,13 @@ type DomainEventHandler = (event: DomainEventBase) => void;
  * Base class of domain aggregate roots
  * @property State - State of aggregate root, should extend 'EntityState'
  */
-@AggregateRoot('@vicin/ddd-core.AggregateRootBase')
-export abstract class AggregateRootBase<State extends AggregateRootState> extends DomainObject<
-  'AggregateRoot',
-  State
-> {
-  declare [sigil]: ExtendSigil<'AggregateRootBase', DomainObject<any, any>>;
+@AttachSigil('@vicin/ddd-core.AggregateRootBase')
+export abstract class AggregateRootBase<State extends AggregateRootState> extends IdentityObject {
+  declare [sigil]: ExtendSigil<'AggregateRootBase', IdentityObject>;
 
   override get [Symbol.toStringTag]() {
     return 'DomainAggregateRoot';
   }
-
-  static override readonly type: 'AggregateRoot' = 'AggregateRoot';
 
   /** Static registry: EventConstructor → handler method */
   protected static readonly whenHandlers = new Map<Function, DomainEventHandler>();
@@ -149,12 +69,14 @@ export abstract class AggregateRootBase<State extends AggregateRootState> extend
   static from(
     ...args: any[]
   ):
-    | Result<AggregateRootBase<any>, DomainException<any>>
-    | Status<AggregateRootBase<any>, DomainException<any>> {
+    | Result<AggregateRootBase<any>, DomainExceptionBase>
+    | Status<AggregateRootBase<any>, DomainExceptionBase> {
     throw new Error(
       `[DDD-core Error] Class '${this.name}' with label '${this.SigilLabel}' didn't implement '.from()' static method yet`
     );
   }
+
+  abstract override getState(): State;
 
   /**
    * Returns identity value object of aggregate root.
@@ -166,16 +88,6 @@ export abstract class AggregateRootBase<State extends AggregateRootState> extend
    */
   toId(): string {
     return this.getId().getState();
-  }
-
-  /**
-   * Check equality between aggregate roots by comparing there identifiers
-   * @param other - Aggregate root to compare against
-   * @returns Boolean
-   */
-  override equals(other: this): boolean {
-    if (!this.isInstance(other)) return false;
-    return this.toId() === other.toId();
   }
 
   // -----------------
@@ -234,4 +146,36 @@ export abstract class AggregateRootBase<State extends AggregateRootState> extend
     this.markEventsAsCommitted();
     return events;
   }
+}
+
+export const AggregateRoot = MarkFactory(AggregateRootBase);
+export const aggregateRoot = markFactory(AggregateRootBase);
+
+/**
+ * Marks a method as an event handler for a specific domain event.
+ * Used in EventSourced Aggregate Roots to register 'when' handlers.
+ *
+ * @param eventClass - The domain event class this method handles
+ */
+export function When(eventClass: any) {
+  return function (target: any, context: ClassMethodDecoratorContext) {
+    if (!DomainEventBase.isInstance(eventClass.prototype)) {
+      throw new Error(`[DDD-core Error] Value passed to '@When' decorator must be domain event`);
+    }
+
+    if (context.kind !== 'method') {
+      throw new Error("[DDD-core Error] '@When' decorator can only be used on methods");
+    }
+
+    const aggregateClass = target.constructor as typeof AggregateRootBase;
+
+    const handlerName = context.name as string;
+    const handlerFn = target[handlerName] as DomainEventHandler;
+
+    if (typeof handlerFn !== 'function') {
+      throw new Error(`[DDD-core Error] '@When' was applied to non-method: ${handlerName}`);
+    }
+
+    aggregateClass.when(eventClass, handlerFn);
+  };
 }

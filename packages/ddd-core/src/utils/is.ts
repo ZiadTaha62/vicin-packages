@@ -10,15 +10,10 @@ export function isArray(value: unknown) {
   return Array.isArray(value);
 }
 
-export function isPrimitive(v: unknown) {
-  return (
-    typeof v === 'bigint' ||
-    typeof v === 'boolean' ||
-    typeof v === 'number' ||
-    typeof v === 'string' ||
-    typeof v === 'symbol' ||
-    v == null
-  );
+export function isPrimitive(
+  v: unknown
+): v is string | boolean | number | bigint | symbol | null | undefined {
+  return v == null || (typeof v !== 'object' && typeof v !== 'function');
 }
 
 type TypedArrayConstructor =
@@ -36,4 +31,8 @@ type TypedArray = InstanceType<TypedArrayConstructor>;
 
 export function isTypedArray(payload: any): payload is TypedArray {
   return ArrayBuffer.isView(payload) && !(payload instanceof DataView);
+}
+
+export function isEntries<T = unknown>(payload: any): payload is [T, T][] {
+  return isArray(payload) && payload.every((v) => isArray(v) && v.length === 2);
 }

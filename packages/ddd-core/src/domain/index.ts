@@ -1,7 +1,27 @@
 export {
+  DomainCollection,
+  domainCollection,
+  DomainCollectionBase,
+  DomainMap,
+  MutableDomainMap,
+  ReadOnlyDomainMap,
+  type AnyDomainMap,
+  DomainSet,
+  MutableDomainSet,
+  ReadOnlyDomainSet,
+  type AnyDomainSet,
+  DomainList,
+  MutableDomainList,
+  ReadOnlyDomainList,
+  type AnyDomainList,
+} from './collections';
+
+export {
   ValueObject,
   valueObject,
   ValueObjectBase,
+  IdentityValueObjectBase,
+  TimeValueObjectBase,
   Entity,
   entity,
   EntityBase,
@@ -9,36 +29,23 @@ export {
   aggregateRoot,
   AggregateRootBase,
   When,
-  DomainCollection,
-  domainCollection,
-  DomainCollectionBase,
-  DomainMap,
-  MutableDomainMap,
-  ReadOnlyDomainMap,
-  DomainSet,
-  MutableDomainSet,
-  ReadOnlyDomainSet,
-  DomainList,
-  MutableDomainList,
-  ReadOnlyDomainList,
-  DomainEvent,
-  domainEvent,
-  DomainEventBase,
-} from './domain-objects';
+} from './elements';
+
+export { DomainEvent, domainEvent, DomainEventBase } from './event';
 
 export {
-  Exception,
-  exception,
   DomainException,
+  domainException,
+  DomainExceptionBase,
   ValidationDomainException,
-  InvariantDomainException,
+  InvariantViolationDomainException,
 } from './exception';
 
 export { invariant, ensure } from './invariant';
 
 export { Policy, policy, PolicyBase } from './policy';
 
-export { Repository, repository, RepositoryBase, InMemoryRepository } from './repository';
+export type { RepositoryI } from './repository';
 
 export { DomainService, domainService, DomainServiceBase } from './service';
 

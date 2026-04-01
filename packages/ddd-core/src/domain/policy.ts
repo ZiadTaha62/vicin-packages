@@ -1,54 +1,10 @@
 import { SpecificationBase } from './specification';
-import {
-  register,
-  type sigil,
-  type ExtendSigil,
-  type SigilOptions,
-  Result,
-  Status,
-} from '../utils';
-import { DomainServiceBase } from './service';
-import { DomainException } from './exception';
+import { type sigil, type ExtendSigil, Result, Status } from '../utils';
+import { DomainServiceBase, DomainService } from './service';
+import { DomainExceptionBase } from './exception';
+import { markFactory, MarkFactory } from '../extended-classes';
 
-/**
- * Marks a class as a Domain policy.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function Policy<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!PolicyBase.isInstance(target.prototype)) {
-      throw new Error("[DDD-core Error] 'Policy' decorator can only be used on domain policies");
-    }
-
-    register(target as any, 'Policy', label, { ...opts, isDomainObject: false });
-  };
-}
-
-/**
- * Marks a class as a Domain policy.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function policy<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!PolicyBase.isInstance(clazz.prototype)) {
-    throw new Error("[DDD-core Error] 'policy' function can only be used on domain policies");
-  }
-
-  register(clazz as any, 'Policy', label, { ...opts, isDomainObject: false });
-}
-
-@Policy('@vicin/ddd-core.PolicyBase')
+@DomainService('@vicin/ddd-core.PolicyBase')
 export abstract class PolicyBase extends DomainServiceBase {
   declare [sigil]: ExtendSigil<'PolicyBase', DomainServiceBase>;
 
@@ -59,10 +15,13 @@ export abstract class PolicyBase extends DomainServiceBase {
   /** Enforce a policy and return Result (recommended pattern) */
   abstract enforce(
     ...args: any[]
-  ): Result<void, DomainException<any>> | Status<void, DomainException<any>>;
+  ): Result<void, DomainExceptionBase> | Status<void, DomainExceptionBase>;
 
   /** Quick boolean check (convenience) */
   protected isSatisfiedBy<T>(spec: SpecificationBase<T>, candidate: T): boolean {
     return spec.isSatisfiedBy(candidate);
   }
 }
+
+export const Policy = MarkFactory(PolicyBase);
+export const policy = markFactory(PolicyBase);

@@ -1,44 +1,6 @@
-import { DomainObject } from './base';
+import { IdentityObjectFactory, markFactory, MarkFactory } from '../extended-classes';
 import { IdentityValueObjectBase, TimeValueObjectBase } from './elements';
-import { register, type sigil, type ExtendSigil, type SigilOptions } from '../../utils';
-
-/**
- * Marks a class as a Domain event.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function DomainEvent<L extends string>(label: L, opts?: SigilOptions) {
-  return function (target: any, context: any) {
-    if (!DomainEventBase.isInstance(target.prototype)) {
-      throw new Error("[DDD-core Error] 'Event' decorator can only be used on domain events");
-    }
-
-    register(target as any, 'Event', label, { ...opts, isDomainObject: true });
-  };
-}
-
-/**
- * Marks a class as a Domain event.
- *
- * Attaches a sigil label, register class for cloning and serialization
- * and registers the class in the DDD registry.
- *
- * @param clazz - Class constructor
- * @param label - Unique identifier label
- * @param opts - Optional sigil configuration
- */
-export function domainEvent<L extends string>(clazz: any, label: L, opts?: SigilOptions) {
-  if (!DomainEventBase.isInstance(clazz.prototype)) {
-    throw new Error("[DDD-core Error] 'domainEvent' function can only be used on domain events");
-  }
-
-  register(clazz as any, 'Event', label, { ...opts, isDomainObject: true });
-}
+import { AttachSigil, type sigil, type ExtendSigil } from '../utils';
 
 type KeyedIdentityValueObject = { [k: string]: IdentityValueObjectBase };
 
@@ -47,6 +9,9 @@ type DomainEventState = KeyedIdentityValueObject & {
   payload: { [k: string]: any };
   version?: number;
 };
+
+const IdentityObject = IdentityObjectFactory('DomainEvent');
+type IdentityObject = InstanceType<typeof IdentityObject>;
 
 /**
  * Base class for domain events
@@ -59,17 +24,15 @@ type DomainEventState = KeyedIdentityValueObject & {
  *
  * @template State - Event state shape
  */
-@DomainEvent('@vicin/ddd-core.DomainEventBase')
+@AttachSigil('@vicin/ddd-core.DomainEventBase')
 export abstract class DomainEventBase<
   State extends DomainEventState = DomainEventState,
-> extends DomainObject<'Event', State> {
-  declare [sigil]: ExtendSigil<'DomainEventBase', DomainObject<any, any>>;
+> extends IdentityObject {
+  declare [sigil]: ExtendSigil<'DomainEventBase', IdentityObject>;
 
   override get [Symbol.toStringTag]() {
     return 'DomainEvent';
   }
-
-  static override readonly type: 'Event' = 'Event';
 
   /**
    * Version number for versioned events
@@ -112,9 +75,12 @@ export abstract class DomainEventBase<
   abstract getId(): IdentityValueObjectBase;
 
   /**
-   * Returns the identifier of the aggregate as a string
+   * Returns the identifier of the event as a string
    */
   toId(): string {
     return this.getId().getState();
   }
 }
+
+export const DomainEvent = MarkFactory(DomainEventBase);
+export const domainEvent = markFactory(DomainEventBase);

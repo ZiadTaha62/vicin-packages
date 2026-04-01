@@ -1,8 +1,9 @@
-import { type sigil, type ExtendSigil, isEqual } from '../../../utils';
-import type { DomainObject, StateOf } from '../base';
+import { type sigil, type ExtendSigil, isEqual } from '../../utils';
 import { DomainCollectionBase, DomainCollection } from './collection';
+import type { StateOf } from '../../extended-classes';
 
 @DomainCollection('@vicin/ddd-core.SharedDomainList')
+// @ts-expect-error Override of static 'reconstitute' method with error 'extends but could be instantiated with a different subtype of constraint'
 abstract class SharedDomainList<V> extends DomainCollectionBase<V[]> {
   declare [sigil]: ExtendSigil<'SharedDomainList', DomainCollectionBase<any>>;
 
@@ -13,7 +14,7 @@ abstract class SharedDomainList<V> extends DomainCollectionBase<V[]> {
     if (value) this.array = Array.from(value);
   }
 
-  static override reconstitute<D extends DomainObject<any, any>>(state: StateOf<D>): D {
+  static override reconstitute<D extends SharedDomainList<any>>(state: StateOf<D>): D {
     return super.reconstitute(state, 'items');
   }
 
@@ -258,3 +259,5 @@ export class MutableDomainList<V> extends SharedDomainList<V> {
     return this;
   }
 }
+
+export type AnyDomainList<V> = DomainList<V> | MutableDomainList<V> | ReadOnlyDomainList<V>;
