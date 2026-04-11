@@ -1,12 +1,22 @@
-import { AttachSigil, type sigil, type ExtendSigil, stringify } from '../utils';
-import { markFactory, MarkFactory, MarkObjectFactory } from '../extended-classes';
+import type { DomainErrorBase } from '../error';
+import {
+  PlainDddObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+  stringify,
+  Result,
+  DddCoreDevError,
+} from '../utils';
 
 /** ------------------------------
  *  Base
  * ------------------------------ */
 
-const MarkObject = MarkObjectFactory('Specification');
-type MarkObject = InstanceType<typeof MarkObject>;
+const DddObject = PlainDddObjectFactory('Specification');
+type DddObject = InstanceType<typeof DddObject>;
 
 /**
  * Base class for domain specifications
@@ -19,8 +29,8 @@ type MarkObject = InstanceType<typeof MarkObject>;
  * @template Type - Discriminator of specification type
  */
 @AttachSigil('@vicin/ddd-core.SpecificationBase')
-export abstract class SpecificationBase<T, Type extends string = string> extends MarkObject {
-  declare [sigil]: ExtendSigil<'SpecificationBase', MarkObject>;
+export abstract class SpecificationBase<T, Type extends string = string> extends DddObject {
+  declare [sigil]: ExtendSigil<'SpecificationBase', DddObject>;
 
   override get [Symbol.toStringTag]() {
     return 'DomainSpecification';
@@ -232,7 +242,9 @@ export class AllOfSpecification<T> extends SpecificationBase<T, 'AllOf'> {
   constructor(private readonly specs: SpecificationBase<T>[]) {
     super();
     if (specs.length === 0) {
-      throw new Error('[DDD-core Error] AllOfSpecification must have at least one specification');
+      throw new DddCoreDevError(
+        '[DDD-core Error] AllOfSpecification must have at least one specification'
+      );
     }
   }
 
@@ -261,7 +273,9 @@ export class AnyOfSpecification<T> extends SpecificationBase<T, 'AnyOf'> {
   constructor(private readonly specs: SpecificationBase<T>[]) {
     super();
     if (specs.length === 0) {
-      throw new Error('[DDD-core Error] AnyOfSpecification must have at least one specification');
+      throw new DddCoreDevError(
+        '[DDD-core Error] AnyOfSpecification must have at least one specification'
+      );
     }
   }
 
@@ -380,6 +394,18 @@ export function unless<T>(
   thenSpec: SpecificationBase<T>
 ): UnlessSpecification<T> {
   return new UnlessSpecification(condition, thenSpec);
+}
+
+export function rule<T>(
+  spec: SpecificationBase<any>,
+  errorFactory: (input: T) => DomainErrorBase
+): (input: T) => Result<T, DomainErrorBase> {
+  return (input: T) => {
+    if (!spec.isSatisfiedBy(input)) {
+      return Result.err(errorFactory(input));
+    }
+    return Result.ok(input);
+  };
 }
 
 /** ------------------------------

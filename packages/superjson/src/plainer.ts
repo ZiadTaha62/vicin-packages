@@ -263,7 +263,7 @@ export const walker = (
   superJson: SuperJSON,
   dedupe: boolean,
   path: string[] = [],
-  objectsInThisPath: Set<any> = new Set(),
+  objectsInThisPath: any[] = [],
   seenObjects = new Map<unknown, Result>(),
   samePathDepth: number = 0
 ): Result => {
@@ -283,7 +283,7 @@ export const walker = (
     }
   }
 
-  if (objectsInThisPath.has(object)) {
+  if (objectsInThisPath.includes(object)) {
     // prevent circular references
     return {
       transformedValue: null,
@@ -308,7 +308,7 @@ export const walker = (
     }
 
     // recurse if transformer mark value as deep
-    objectsInThisPath.add(object);
+    objectsInThisPath.push(object);
     const recursiveResult = walker(
       value,
       identities,
@@ -320,7 +320,7 @@ export const walker = (
       seenObjects,
       samePathDepth + 1
     );
-    objectsInThisPath.delete(object);
+    objectsInThisPath.pop();
 
     const result: Result = recursiveResult.annotations
       ? {
@@ -348,7 +348,7 @@ export const walker = (
         );
       }
 
-      objectsInThisPath.add(object);
+      objectsInThisPath.push(object);
       const recursiveResult = walker(
         value,
         identities,
@@ -360,7 +360,7 @@ export const walker = (
         seenObjects,
         0
       );
-      objectsInThisPath.delete(object);
+      objectsInThisPath.pop();
 
       transformedValue[index] = recursiveResult.transformedValue;
 

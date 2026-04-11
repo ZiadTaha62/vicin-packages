@@ -1,12 +1,18 @@
 import {
+  MarkObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+} from '../utils';
+import {
   type RepositoryI,
   AggregateRootBase,
   IdentityValueObjectBase,
   DomainList,
   MutableDomainMap,
 } from '../domain';
-import { MarkObjectFactory, MarkFactory, markFactory } from '../extended-classes';
-import { AttachSigil, type sigil, type ExtendSigil } from '../utils';
 
 const MarkObject = MarkObjectFactory('Repository');
 type MarkObject = InstanceType<typeof MarkObject>;

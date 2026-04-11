@@ -1,8 +1,7 @@
+import { MarkFactory, markFactory, type sigil, type ExtendSigil, Result } from '../utils';
 import { SpecificationBase } from './specification';
-import { type sigil, type ExtendSigil, Result, Status } from '../utils';
 import { DomainServiceBase, DomainService } from './service';
-import { DomainExceptionBase } from './exception';
-import { markFactory, MarkFactory } from '../extended-classes';
+import { DomainErrorBase } from '../error';
 
 @DomainService('@vicin/ddd-core.PolicyBase')
 export abstract class PolicyBase extends DomainServiceBase {
@@ -13,9 +12,7 @@ export abstract class PolicyBase extends DomainServiceBase {
   }
 
   /** Enforce a policy and return Result (recommended pattern) */
-  abstract enforce(
-    ...args: any[]
-  ): Result<void, DomainExceptionBase> | Status<void, DomainExceptionBase>;
+  abstract enforce(...args: any[]): Result<void, DomainErrorBase>;
 
   /** Quick boolean check (convenience) */
   protected isSatisfiedBy<T>(spec: SpecificationBase<T>, candidate: T): boolean {

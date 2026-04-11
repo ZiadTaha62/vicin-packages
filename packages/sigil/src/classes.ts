@@ -7,7 +7,11 @@ import type { sigil } from './types';
  * This is produced by `Sigilify` and can serve as a basic sentinel/base
  * class for other sigil classes or for debugging/inspection.
  */
-export const Sigil = BaseSigilify(class {});
+export const Sigil = BaseSigilify(
+  class {
+    constructor(...args: any[]) {}
+  }
+);
 export type Sigil = InstanceType<typeof Sigil>;
 
 /**

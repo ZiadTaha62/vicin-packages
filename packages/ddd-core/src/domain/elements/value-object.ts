@@ -1,15 +1,20 @@
 import {
+  PlainStateObjectFactory,
+  MarkFactory,
+  markFactory,
+  type StateOf,
   AttachSigil,
   type sigil,
   type ExtendSigil,
   deepFreeze,
   type Result,
-  type Status,
+  type StateObjectSerialization,
+  type JSONValue,
+  DddCoreDevError,
 } from '../../utils';
-import type { DomainExceptionBase } from '../exception';
-import { StateObjectFactory, MarkFactory, markFactory, type StateOf } from '../../extended-classes';
+import type { DomainErrorBase } from '../../error';
 
-const StateObject = StateObjectFactory('ValueObject');
+const StateObject = PlainStateObjectFactory('ValueObject');
 type StateObject = InstanceType<typeof StateObject>;
 
 type ValueObjectState = unknown;
@@ -20,7 +25,7 @@ type ValueObjectState = unknown;
  */
 
 @AttachSigil('@vicin/ddd-core.ValueObjectBase')
-// @ts-expect-error Override of static 'reconstitute' method with error 'extends but could be instantiated with a different subtype of constraint'
+// @ts-expect-error Override of static methodS with error 'extends but could be instantiated with a different subtype of constraint'
 export abstract class ValueObjectBase<State extends ValueObjectState> extends StateObject {
   declare [sigil]: ExtendSigil<'ValueObjectBase', StateObject>;
 
@@ -42,11 +47,21 @@ export abstract class ValueObjectBase<State extends ValueObjectState> extends St
     return super.reconstitute(state, 'state');
   }
 
+  static override deserialize<V extends ValueObjectBase<any>>(
+    serialization: StateObjectSerialization<V['kind'], ReturnType<V['getState']>>
+  ): V {
+    return super.reconstitute(serialization.state) as V;
+  }
+
+  static override fromJSON<V extends ValueObjectBase<any>>(json: JSONValue): V {
+    return super.fromJSON(json);
+  }
+
   /**
    * Create value object with default value
    */
   static create(): ValueObjectBase<any> {
-    throw new Error(
+    throw new DddCoreDevError(
       `[DDD-core Error] Class '${this.name}' with label '${(this as any).SigilLabel}' didn't implement '.create()' static method yet`
     );
   }
@@ -54,12 +69,8 @@ export abstract class ValueObjectBase<State extends ValueObjectState> extends St
   /**
    * Construct value object from untrusted / primitive / external data
    */
-  static from(
-    ...args: any[]
-  ):
-    | Result<ValueObjectBase<any>, DomainExceptionBase>
-    | Status<ValueObjectBase<any>, DomainExceptionBase> {
-    throw new Error(
+  static from(...args: any[]): Result<ValueObjectBase<any>, DomainErrorBase> {
+    throw new DddCoreDevError(
       `[DDD-core Error] Class '${this.name}' with label '${this.SigilLabel}' didn't implement '.from()' static method yet`
     );
   }

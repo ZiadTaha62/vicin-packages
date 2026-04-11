@@ -1,8 +1,14 @@
-import { DddCore } from '../ddd-core';
+import {
+  MarkObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+  DddCoreDevError,
+} from '../utils';
 import type { OutboxI } from '../application';
 import { DomainList, MutableDomainSet, type DomainEventBase } from '../domain';
-import { AttachSigil, type sigil, type ExtendSigil } from '../utils';
-import { markFactory, MarkFactory, MarkObjectFactory } from '../extended-classes';
 
 const MarkObject = MarkObjectFactory('Outbox');
 type MarkObject = InstanceType<typeof MarkObject>;
@@ -41,7 +47,7 @@ export class InMemoryOutbox extends OutboxBase {
     for (const e of events) {
       const deleted = this.outbox_table.delete(e);
       if (!deleted && strict) {
-        throw new Error(
+        throw new DddCoreDevError(
           `[DDD-core Error] Event '${e.SigilLabel}' with id '${e.toId()}' is not present in outbox`
         );
       }

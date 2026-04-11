@@ -1,5 +1,5 @@
-import { isSigilInstance } from './sigil';
 import { isArray, isPlainObject, isPrimitive, isTypedArray, isEntries } from './is';
+import { DddCoreDevError } from './error';
 
 /** ------------------------------
  *  Options
@@ -115,7 +115,7 @@ function handlePrimitiveEdgeCases(value: Primitive, opts: Required<StringifyOpti
 /** Function used internally to stringify values */
 export function stringify(value: unknown, opts?: StringifyOptions): string {
   const options = { ...STRINGIFY_CONFIG, ...opts };
-  const output = stringifyWalker(value, new Set(), new Map(), options);
+  const output = stringifyWalker(value, [], new Map(), options);
 
   // If output is not an object return it directly
   if (typeof output !== 'object' || output == null) {
@@ -130,7 +130,7 @@ export function stringify(value: unknown, opts?: StringifyOptions): string {
   if (syntax === 'yaml') {
     return toYAML(output, '', ' '.repeat(options.stringifyYamlIndentSpace), false, options);
   }
-  throw new Error(`[DDD-core Error] Invalid object serialization type '${syntax}'`);
+  throw new DddCoreDevError(`[DDD-core Error] Invalid object serialization type '${syntax}'`);
 }
 
 /** ------------------------------
@@ -146,7 +146,7 @@ type StringifyResult = StringifyResultItem | StringifyResultObject | StringifyRe
 
 function stringifyWalker(
   value: unknown,
-  objectsInThisPath: Set<object>,
+  objectsInThisPath: any[] = [],
   seenObjects: Map<object, StringifyResult>,
   opts: Required<StringifyOptions>
 ): StringifyResult {
@@ -162,9 +162,9 @@ function stringifyWalker(
     return seen;
   }
 
-  if (objectsInThisPath.has(value)) return '[Circular]';
+  if (objectsInThisPath.includes(value)) return '[Circular]';
 
-  objectsInThisPath.add(value);
+  objectsInThisPath.push(value);
 
   let result: StringifyResult;
 
@@ -190,24 +190,11 @@ function stringifyWalker(
   } else if (isTypedArray(value)) {
     result = [...value].map(String);
   } else {
-    result = stringifyNonPlainObject(value, opts);
+    result = String(value);
   }
 
   seenObjects.set(value, result);
-  objectsInThisPath.delete(value);
-
-  return result;
-}
-
-function stringifyNonPlainObject(value: object, opts: Required<StringifyOptions>) {
-  const defaultStr = Object.prototype.toString.call(value);
-  let result = value.toString();
-
-  if (result === defaultStr || result === '[object Object]') {
-    const name =
-      isSigilInstance(value) && value.hasOwnSigil ? value.SigilLabel : value.constructor.name;
-    result = `[object ${name}]`;
-  }
+  objectsInThisPath.pop();
 
   return result;
 }

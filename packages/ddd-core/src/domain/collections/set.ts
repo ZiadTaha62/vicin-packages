@@ -1,11 +1,10 @@
-import { type sigil, type ExtendSigil, isEqual } from '../../utils';
+import { type sigil, type ExtendSigil, isEqual, type StateOf } from '../../utils';
 import { DomainCollectionBase, toKey, DomainCollection } from './collection';
-import type { StateOf } from '../../extended-classes';
 
 @DomainCollection('@vicin/ddd-core.SharedDomainSet')
-// @ts-expect-error Override of static 'reconstitute' method with error 'extends but could be instantiated with a different subtype of constraint'
-abstract class SharedDomainSet<V> extends DomainCollectionBase<V[]> {
-  declare [sigil]: ExtendSigil<'SharedDomainSet', DomainCollectionBase<any>>;
+// @ts-expect-error Override of static methods with error 'extends but could be instantiated with a different subtype of constraint'
+abstract class SharedDomainSet<V> extends DomainCollectionBase {
+  declare [sigil]: ExtendSigil<'SharedDomainSet', DomainCollectionBase>;
 
   protected map: Map<unknown, V> = new Map();
 
@@ -16,7 +15,7 @@ abstract class SharedDomainSet<V> extends DomainCollectionBase<V[]> {
     }
   }
 
-  static override reconstitute<D extends SharedDomainSet<any>>(state: StateOf<D>): D {
+  static override reconstitute<S extends SharedDomainSet<any>>(state: StateOf<S>): S {
     const mappedState = new Map();
     for (const value of state as unknown[]) {
       mappedState.set(toKey(value, false), value);

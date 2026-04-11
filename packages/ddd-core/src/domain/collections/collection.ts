@@ -1,12 +1,19 @@
-import { markFactory, MarkFactory, StateObjectFactory } from '../../extended-classes';
-import { AttachSigil, type sigil, type ExtendSigil } from '../../utils';
-import { ValueObjectBase, EntityBase, AggregateRootBase } from '../elements';
-import { DomainEventBase } from '../event';
+import {
+  PlainStateObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+  type JSONValue,
+  type StateObjectSerialization,
+  isIdentityObject,
+  isStateObject,
+  DddCoreDevError,
+} from '../../utils';
 
-const StateObject = StateObjectFactory('DomainCollection');
+const StateObject = PlainStateObjectFactory('DomainCollection');
 type StateObject = InstanceType<typeof StateObject>;
-
-type DomainCollectionState = unknown;
 
 /**
  * Base class for domain collection objects.
@@ -17,9 +24,8 @@ type DomainCollectionState = unknown;
  * @template State - Internal state representation of the collection
  */
 @AttachSigil('@vicin/ddd-core.DomainCollection')
-export abstract class DomainCollectionBase<
-  State extends DomainCollectionState,
-> extends StateObject {
+// @ts-expect-error Override of static methods with error 'extends but could be instantiated with a different subtype of constraint'
+export abstract class DomainCollectionBase extends StateObject {
   declare [sigil]: ExtendSigil<'DomainCollection', StateObject>;
 
   override get [Symbol.toStringTag]() {
@@ -30,7 +36,15 @@ export abstract class DomainCollectionBase<
     super();
   }
 
-  abstract override getState(): State;
+  static override deserialize<C extends DomainCollectionBase>(
+    serialization: StateObjectSerialization<C['kind'], ReturnType<C['getState']>>
+  ): C {
+    return super.reconstitute(serialization.state);
+  }
+
+  static override fromJSON<C extends DomainCollectionBase>(json: JSONValue): C {
+    return super.fromJSON(json);
+  }
 
   /**
    * Converts a value into a stable key used internally for storage.
@@ -63,15 +77,11 @@ export const domainCollection = markFactory(DomainCollectionBase);
  * @throws Error if strict mode is enabled and value is not supported
  */
 export function toKey(value: any, strict: boolean): unknown {
-  if (ValueObjectBase.isInstance(value)) {
+  if (isStateObject(value)) {
     return value.getState();
   }
 
-  if (
-    EntityBase.isInstance(value) ||
-    AggregateRootBase.isInstance(value) ||
-    DomainEventBase.isInstance(value)
-  ) {
+  if (isIdentityObject(value)) {
     return value.toId();
   }
 
@@ -80,7 +90,7 @@ export function toKey(value: any, strict: boolean): unknown {
   }
 
   if (strict) {
-    throw new Error(`[DDD-core Error] Value ${value} is stored by reference`);
+    throw new DddCoreDevError(`[DDD-core Error] Value ${value} is stored by reference`);
   }
 
   return value;

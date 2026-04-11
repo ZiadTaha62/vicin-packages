@@ -9,11 +9,6 @@ import type { Sigil } from './classes';
  */
 export declare const sigil: unique symbol;
 
-/** Update '[sigil]' field for nominal typing */
-export type ExtendSigil<L extends string, P extends Sigil> = Prettify<
-  IfNever<SigilOf<P>, {}> & { [K in L]: true }
->;
-
 /**
  * Extract the compile-time label map from a sigil instance `S`.
  *
@@ -21,6 +16,25 @@ export type ExtendSigil<L extends string, P extends Sigil> = Prettify<
  * @returns The sigil label record (e.g. `{ User: true, Admin: true }`) or never if not Sigil class instance.
  */
 export type SigilOf<S> = S extends { readonly [sigil]: infer Sigil } ? Sigil : never;
+
+/**
+ * Extract the compile-time label map from a sigil constructor `S`.
+ *
+ * @typeParam S - A sigil constructor type.
+ * @returns The sigil label record (e.g. `{ User: true, Admin: true }`) or never if not Sigil class instance.
+ */
+export type SigilOfStatic<S> = SigilOf<GetPrototype<S>>;
+
+/** Update '[sigil]' field for nominal typing */
+export type ExtendSigil<L extends string, P extends Sigil> = Prettify<
+  IfNever<SigilOf<P>, {}> & { [K in L]: true }
+>;
+
+/** Update '[sigil]' field for nominal typing, accept constructor type */
+export type ExtendSigilStatic<L extends string, P extends typeof Sigil> = ExtendSigil<
+  L,
+  GetPrototype<P>
+>;
 
 /**
  * Helper type to get prototype of class

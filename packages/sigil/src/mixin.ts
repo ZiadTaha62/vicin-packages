@@ -135,6 +135,14 @@ export function BaseSigilify<B extends ConstructorAbstract>(Base: B) {
     get hasOwnSigil(): boolean {
       return (this.constructor as unknown as Sigil).hasOwnSigil;
     }
+
+    override toString(): string {
+      if (super.toString !== Object.prototype.toString) {
+        return super.toString();
+      }
+
+      return '[' + this.SigilLabel + ']';
+    }
   }
 
   sigilify(Sigil, 'Sigil');
@@ -163,6 +171,9 @@ export function Sigilify<B extends Constructor, L extends string>(
   const BaseSigil = BaseSigilify(Base);
   class Sigilified extends BaseSigil {
     declare [sigil]: ExtendSigil<L, Sigil>;
+    constructor(...args: any[]) {
+      super(...args);
+    }
   }
 
   sigilify(Sigilified, label, opts);
@@ -191,6 +202,9 @@ export function SigilifyAbstract<B extends ConstructorAbstract, L extends string
   const BaseSigil = BaseSigilify(Base);
   abstract class Sigilified extends BaseSigil {
     declare [sigil]: ExtendSigil<L, Sigil>;
+    constructor(...args: any[]) {
+      super(...args);
+    }
   }
 
   sigilify(Sigilified, label, opts);

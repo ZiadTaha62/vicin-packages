@@ -31,16 +31,6 @@ export {
   When,
 } from './elements';
 
-export { DomainEvent, domainEvent, DomainEventBase } from './event';
-
-export {
-  DomainException,
-  domainException,
-  DomainExceptionBase,
-  ValidationDomainException,
-  InvariantViolationDomainException,
-} from './exception';
-
 export { invariant, ensure } from './invariant';
 
 export { Policy, policy, PolicyBase } from './policy';
@@ -69,4 +59,5 @@ export {
   noneOf,
   anyOf,
   unless,
+  rule,
 } from './specification';

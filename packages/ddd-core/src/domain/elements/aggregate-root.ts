@@ -1,11 +1,22 @@
-import { DomainEventBase } from '../event';
-import { AttachSigil, type sigil, type ExtendSigil, type Result, type Status } from '../../utils';
-import type { IdentityValueObjectBase } from './value-object';
-import type { DomainExceptionBase } from '../exception';
+import {
+  PlainIdentityObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+  type Result,
+  type StateOf,
+  type JSONValue,
+  type StateObjectSerialization,
+  DddCoreDevError,
+} from '../../utils';
+import { DomainEventBase } from '../../event';
 import { DomainList } from '../collections';
-import { IdentityObjectFactory, markFactory, MarkFactory } from '../../extended-classes';
+import type { IdentityValueObjectBase } from './value-object';
+import type { DomainErrorBase } from '../../error';
 
-const IdentityObject = IdentityObjectFactory('AggregateRoot');
+const IdentityObject = PlainIdentityObjectFactory('AggregateRoot');
 type IdentityObject = InstanceType<typeof IdentityObject>;
 
 type AggregateRootState = {
@@ -19,11 +30,26 @@ type DomainEventHandler = (event: DomainEventBase) => void;
  * @property State - State of aggregate root, should extend 'EntityState'
  */
 @AttachSigil('@vicin/ddd-core.AggregateRootBase')
+// @ts-expect-error Override of static methods with error 'extends but could be instantiated with a different subtype of constraint'
 export abstract class AggregateRootBase<State extends AggregateRootState> extends IdentityObject {
   declare [sigil]: ExtendSigil<'AggregateRootBase', IdentityObject>;
 
   override get [Symbol.toStringTag]() {
     return 'DomainAggregateRoot';
+  }
+
+  static override reconstitute<A extends AggregateRootBase<any>>(state: StateOf<A>): A {
+    return super.reconstitute(state);
+  }
+
+  static override deserialize<A extends AggregateRootBase<any>>(
+    serialization: StateObjectSerialization<A['kind'], ReturnType<A['getState']>>
+  ): A {
+    return super.reconstitute(serialization.state) as A;
+  }
+
+  static override fromJSON<A extends AggregateRootBase<any>>(json: JSONValue): A {
+    return super.fromJSON(json);
   }
 
   /** Static registry: EventConstructor → handler method */
@@ -45,10 +71,6 @@ export abstract class AggregateRootBase<State extends AggregateRootState> extend
 
   /** Replay history to reconstitute aggregate */
   static reconstituteFromHistory<D extends AggregateRootBase<any>>(events: DomainEventBase[]): D {
-    if (events.length === 0) {
-      throw new Error(`[DDD-core Error] Cannot reconstitute ${this.name} from empty event stream`);
-    }
-
     const aggregate = this.create(); // empty state, will be filled by replay
     aggregate.replay(events);
     return aggregate as D;
@@ -58,20 +80,16 @@ export abstract class AggregateRootBase<State extends AggregateRootState> extend
    * Create brand new aggregate root with default state, returns aggregate root directly
    */
   static create(): AggregateRootBase<any> {
-    throw new Error(
+    throw new DddCoreDevError(
       `[DDD-core Error] Class '${this.name}' with label '${this.SigilLabel}' didn't implement '.create()' static method yet`
     );
   }
 
   /**
-   * Construct aggregate root from untrusted / primitive / external data, returns Result/Status after validation and invariants check
+   * Construct aggregate root from untrusted / primitive / external data, returns `Result` after validation and invariants check
    */
-  static from(
-    ...args: any[]
-  ):
-    | Result<AggregateRootBase<any>, DomainExceptionBase>
-    | Status<AggregateRootBase<any>, DomainExceptionBase> {
-    throw new Error(
+  static from(...args: any[]): Result<AggregateRootBase<any>, DomainErrorBase> {
+    throw new DddCoreDevError(
       `[DDD-core Error] Class '${this.name}' with label '${this.SigilLabel}' didn't implement '.from()' static method yet`
     );
   }
@@ -102,7 +120,7 @@ export abstract class AggregateRootBase<State extends AggregateRootState> extend
     if (typeof handler === 'function') {
       handler.call(this, event);
     } else {
-      throw new Error(
+      throw new DddCoreDevError(
         `[DDD-core Error] No handler registered for event ${event.SigilLabel || event.constructor.name}`
       );
     }
@@ -160,11 +178,13 @@ export const aggregateRoot = markFactory(AggregateRootBase);
 export function When(eventClass: any) {
   return function (target: any, context: ClassMethodDecoratorContext) {
     if (!DomainEventBase.isInstance(eventClass.prototype)) {
-      throw new Error(`[DDD-core Error] Value passed to '@When' decorator must be domain event`);
+      throw new DddCoreDevError(
+        `[DDD-core Error] Value passed to '@When' decorator must be domain event`
+      );
     }
 
     if (context.kind !== 'method') {
-      throw new Error("[DDD-core Error] '@When' decorator can only be used on methods");
+      throw new DddCoreDevError("[DDD-core Error] '@When' decorator can only be used on methods");
     }
 
     const aggregateClass = target.constructor as typeof AggregateRootBase;
@@ -173,7 +193,9 @@ export function When(eventClass: any) {
     const handlerFn = target[handlerName] as DomainEventHandler;
 
     if (typeof handlerFn !== 'function') {
-      throw new Error(`[DDD-core Error] '@When' was applied to non-method: ${handlerName}`);
+      throw new DddCoreDevError(
+        `[DDD-core Error] '@When' was applied to non-method: ${handlerName}`
+      );
     }
 
     aggregateClass.when(eventClass, handlerFn);

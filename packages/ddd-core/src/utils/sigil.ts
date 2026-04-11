@@ -7,6 +7,7 @@ export {
   attachSigil,
   type sigil,
   type ExtendSigil,
+  type ExtendSigilStatic,
   type SigilOptions,
   RECOMMENDED_LABEL_REGEX,
   isSigilInstance,

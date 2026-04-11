@@ -25,10 +25,10 @@ export {
   // outcome
   Result,
   ResultAsync,
-  Status,
 
   // equal
   isEqual,
-} from './utils';
 
-export { updateOptions } from './options';
+  // update options
+  updateOptions,
+} from './utils';

@@ -1,4 +1,4 @@
-import { isStateObject } from '../registry';
+import { isStateObject } from './extended-classes';
 
 /** Function used internally for equality, its a copy of 'fast-deep-equal' library but modified to call 'equals' method of domain objects */
 /**

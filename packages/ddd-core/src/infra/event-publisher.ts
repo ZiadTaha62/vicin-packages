@@ -1,7 +1,13 @@
+import {
+  MarkObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+} from '../utils';
 import type { EventPublisherI } from '../application';
 import type { DomainEventBase } from '../domain';
-import { AttachSigil, type sigil, type ExtendSigil } from '../utils';
-import { MarkObjectFactory, MarkFactory, markFactory } from '../extended-classes';
 
 const MarkObject = MarkObjectFactory('EventPublisher');
 type MarkObject = InstanceType<typeof MarkObject>;

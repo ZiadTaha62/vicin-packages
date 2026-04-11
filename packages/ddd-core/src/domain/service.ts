@@ -1,5 +1,11 @@
-import { AttachSigil, type sigil, type ExtendSigil, Result, Status } from '../utils';
-import { markFactory, MarkFactory, MarkObjectFactory } from '../extended-classes';
+import {
+  MarkObjectFactory,
+  MarkFactory,
+  markFactory,
+  AttachSigil,
+  type sigil,
+  type ExtendSigil,
+} from '../utils';
 
 const MarkObject = MarkObjectFactory('DomainService');
 type MarkObject = InstanceType<typeof MarkObject>;
@@ -11,14 +17,6 @@ export abstract class DomainServiceBase extends MarkObject {
   override get [Symbol.toStringTag]() {
     return 'DomainService';
   }
-
-  // Convenient helpers
-  protected readonly Result = Result;
-  protected ok = Result.ok;
-  protected err = Result.err;
-  protected readonly Status = Status;
-  protected success = Status.success;
-  protected failure = Status.failure;
 }
 
 export const DomainService = MarkFactory(DomainServiceBase);
